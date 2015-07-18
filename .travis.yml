@@ -4,13 +4,15 @@ rust: nightly
 script:
 - cargo build
 - cargo test
-after_success:
-- .travis/release.sh
+env:
+  global:
+    - secure: xHUGJn89lFSrNutHity1M+97tZjQ5ff0tjNbjDwchujL5BgP9aLVY3O7Wg3LoO/sWN8TYtO5sDVBy/8nV6HvVU28k/1ZLOQzDc2WeXIVBGdqOxB9QtLAkIa4aRHA6yhC65vI9zeTzGnOo166++4HvtU5DN5Bkq+Zm+AZxXVEZM+3AeiqaOLly6AzgUWCQf2TF8/aqU9K2sb6yBYsrBi8m4yMVYoC3pKlVlk6NbevhG059V/46zNQqDwbryLa+MPiRsnMuDVU2xAaKd4OAIxVNOfYmEETHnpZ1UNXMCc85XHOeu2+AVxJJzdb3U3jb7ixZ8z14ZwUBHzVgMv2p2lHvSL7TPQ/y+N4NOg7FEptxVzlzYT9h/5Nrx2sqVkgezzFf3L9vJ7W9CNHTBuW29gKpnNxuiFw0ZOU5c7St/tgccjzphOJaUvT1n7KuZinRktz7lIawShIuC8z1BChC2nDJoe650nvtUEETU++nj+rEdFmJwwGg+bz+vjsfFiXRxC6Fswe3Q7xrVrq+PDO51ZqZbOj1vj6Kxq1CdnHvvjNCb+wF4ihM4qf48Hnor80f+ciLwK5vENF6cMsSsTcEXHgXd1HwDGOkaBwkhQjwqg3fStuARmCQYmTnxuNHSNXnnazZq4MpRn4cqcr/ZeZsXOvJQ4BEA9HLacSD5Ii03D4u7A=
+    - secure: KHYk3sNFc1vNTgLRRDfGlYU3jqDgK1DBkr8NZR7gtQ/KaNq7PcHGNQ1Uoo6HOmhKLLha/ax+smq9hqtZGz9zH80ESIND37j+1rFVUFQ4aENNo7nCwn00vhk0nH9w0+AeTfgliMY+bf3OfPtGl+ra7LJaAVXn8YALcwd7bIUZOQ2EooYCLjR2HLxT880jdJSkx+aHW9FMQq+TosNqUl9w57a/R+N/CI5V2IMr4QM2Baq+U53hP0EbxEDoa8f9UoA7HPgjg+wlRe/p5GeybFcj7HdfCgAh47qVGC8Jj5g1tO4jzHfYumr9kVFUREqi4EC7nC/E4mFDw5KgTkpMXzoUEXKcwmX+j4b1U5H/uSyBS3GVzQhwsa6WiuuMgc00Z+7LJKMseDcgezlxg6ZTSkvewmt3bpL1WOTe5WK4xz6FPBGBOhywlACz2VVDUNYHPqd6p3sdGlxVR3FYgApbXwucCKsqS/a+RTvmPyMkxr9HuyNwNwFZviR4rA/pNerv3KSt2R7Ceo/MCFVLaqcazcwAUDegtLKPoCE5iWyKGyC0P79uTP3x+kxEKanRwFRvf+fGR0f+IabF/SJkjNPcIp5NKu7yiifnRuak3nj/K1a7p/PeJ/DeaiArxtCxBxzxdKf//g7FMtzFCZDVWTJRkiTMYkVaUK9baJRN9GuNvSjfbes=
 before_deploy:
-- cargo doc
-- .travis/publish.sh
-- cargo package
-- cargo publish --token $CARGO_TOKEN
+  - cargo doc
+  - .travis/publish.sh
+  - cargo package
+  - cargo publish --token $CARGO_TOKEN
 deploy:
   provider: releases
   api_key:
@@ -19,6 +21,3 @@ deploy:
   on:
     repo: hawkw/seax_svm
     tags: true
-env:
-  global:
-    secure: KHYk3sNFc1vNTgLRRDfGlYU3jqDgK1DBkr8NZR7gtQ/KaNq7PcHGNQ1Uoo6HOmhKLLha/ax+smq9hqtZGz9zH80ESIND37j+1rFVUFQ4aENNo7nCwn00vhk0nH9w0+AeTfgliMY+bf3OfPtGl+ra7LJaAVXn8YALcwd7bIUZOQ2EooYCLjR2HLxT880jdJSkx+aHW9FMQq+TosNqUl9w57a/R+N/CI5V2IMr4QM2Baq+U53hP0EbxEDoa8f9UoA7HPgjg+wlRe/p5GeybFcj7HdfCgAh47qVGC8Jj5g1tO4jzHfYumr9kVFUREqi4EC7nC/E4mFDw5KgTkpMXzoUEXKcwmX+j4b1U5H/uSyBS3GVzQhwsa6WiuuMgc00Z+7LJKMseDcgezlxg6ZTSkvewmt3bpL1WOTe5WK4xz6FPBGBOhywlACz2VVDUNYHPqd6p3sdGlxVR3FYgApbXwucCKsqS/a+RTvmPyMkxr9HuyNwNwFZviR4rA/pNerv3KSt2R7Ceo/MCFVLaqcazcwAUDegtLKPoCE5iWyKGyC0P79uTP3x+kxEKanRwFRvf+fGR0f+IabF/SJkjNPcIp5NKu7yiifnRuak3nj/K1a7p/PeJ/DeaiArxtCxBxzxdKf//g7FMtzFCZDVWTJRkiTMYkVaUK9baJRN9GuNvSjfbes=
