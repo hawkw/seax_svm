@@ -2,11 +2,25 @@ sudo: false
 language: rust
 rust: nightly
 script:
-  - cargo build
-  - cargo test
+- cargo build
+- cargo test
 after_success:
-  - .travis/release.sh
+- .travis/release.sh
 env:
   global:
   - secure: iEGoVGb3OeqSqP4UP7nbLtMEmGi9JgI0nxjrpRrSg22pCCa+lMIIiYp9gY2558pwAbcxaJpahmTt3lYqe2wdKfXlGWRB7Tz99FR8lX+vRXpgxDLg1Sz8BAnN7X9bu+AGL/INwYOe6tVncXcQgKn4uSTYa001CqhlwPzMmtGSw/w=
   - secure: eKEXvvZrTIKGV7LouFW0EfjFPd09OgEI3Y6Z5QsWdEdv73zMvXzjz9xHu+9AmYirI8m/e0v2/RXefP/elcxjLKBa61b1MC/shQPjpbaqC4Y6UTQh5If1X/QN88cbc+VldD2dKgjP5gRX72TAfHoO466NLIxxigKkZJQsOawOVUs=
+before_deploy:
+  - cargo doc
+  - .travis/publish.sh
+  - cargo login $CRATES_TOKEN
+  - cargo package
+  - cargo publish
+deploy:
+  provider: releases
+  api_key:
+    secure: R63t7UD46RuxkKTJRcLuK0tIezdZhd6BsLKbQ1L4b4H+7P+xfwuhDf+rC0HVw6qbJ3fCcGasYYxPUVkwYfqs9tIWORd+7JmBuQo6g1dsj+z/D6OSjn5XQ9YnmXHglGkADEneU/9SfDt+8xv171mJKgKZ6ZlIKg/mHDfbnM2DmiSwMigA/UPpVVVBcw1Bmk96umPeuLUSVOb67cy1F/56MQpv1Vzz0dfevjJxsA/BFbcBoDKFGwRaP8HqgDJYkbyCpN1EgM3lj99LmbCE0N7Jvl8x2VdAa0eIYXKAkc/oYCZsMhSYL5zFhcuRG/wOM875VqiEgK+aZMMhHYrWQWEkvycpM6ZvIahzj8JqO+NDqkN4xOGMKiUXLXjQHZpsDWh4le83V1xClc04R/QxSiJGVibw2O2H49L5bSW2idxBTOjSCH5tfxWdBvLL7JwJSlTPENGPPm3LZmVy5bRlSR2vE1vABwB5UmbhhT2NG9Ar6siXEzfxyG+Fp7a5GSJbDC3R5xRymUJIJQBI++A+3Am/Mgk4ZSzrIqMqfwof1xYM+Hd02xseWy2OqU89N+ufAaKe8SM+lQyr/lIQjUNBXMjlKYRd3BkmhBVleUv/0i5HabBG5q2tohyze59vdSA3FlxPjia1ON6gsmGS75EFVfJA2bQxVFu0wL9YbRBjfwCtPgQ=
+  file: target/debug/libseax_svm.rlib
+  on:
+    repo: hawkw/seax_svm
+    tags: true
