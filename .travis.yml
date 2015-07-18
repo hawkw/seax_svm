@@ -13,7 +13,7 @@ before_deploy:
 - cargo doc
 - .travis/publish.sh
 - cargo package
-- cargo publish --token $CARGO_TOKEN
+- cargo publish --token $CRATES_TOKEN
 deploy:
   provider: releases
   api_key:
