@@ -5,8 +5,6 @@ use super::cell::Atom::*;
 use super::cell::SVMCell::*;
 use super::Inst::*;
 
-use std::io;
-
 use quickcheck::quickcheck;
 
 /*
