@@ -298,7 +298,6 @@ impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
     }
 }
 
-
 #[unstable(feature="encode")]
 pub trait Encode {
     #[unstable(feature="encode")]
