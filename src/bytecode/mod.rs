@@ -124,7 +124,7 @@
 extern crate byteorder;
 
 use self::byteorder::BigEndian; // big-endian chosen arbitrarily because I'm Good At Computers
-use self::byteorder::ReadBytesExt;
+use self::byteorder::{ReadBytesExt,WriteBytesExt};
 
 use std::error::Error;
 use std::io::Read;
@@ -252,7 +252,8 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                 "Reached end of source unexpectedly while decoding cons cell")),
             Ok(_)       => self.next_cell()
                                .and_then(|car| (car, try!(self.next_cell())) )
-                               .and_then(|(car, cdr)| Some(box list!(car,cdr)) )
+                               .and_then(|(car, cdr)| Some(box list!(car,cdr))
+                                )
             Err(why)    => Err(String::from(why.description()))
         }
 
@@ -301,13 +302,49 @@ impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
 #[unstable(feature="encode")]
 pub trait Encode {
     #[unstable(feature="encode")]
-    fn emit<'a>(self) -> &'a [u8];
+    fn emit<'a>(&'a self) -> &'a [u8];
 }
 
 #[unstable(feature="encode")]
 impl Encode for SVMCell {
+    #[unstable(feature="encode")]
+    fn emit<'a>(&'a self) -> &'a [u8] {
+        match *self {
+            AtomCell(ref atom) => atom.emit(),
+            InstCell(ref inst) => inst.emit(),
+            ListCell(ref list) => list.emit()
+        }
+    }
+}
 
-    fn emit<'a>(self) -> &'a [u8]{
+#[unstable(feature="encode")]
+impl Encode for AtomCell {
+    #[unstable(feature="encode")]
+    fn emit<'a>(&'a self) -> &'a [u8] {
+        match *self {
+            UInt(ref value) => {
+                let mut buf = [0x00; 9];
+                buf[0] = 0xC1;
+                &buf[1..8].write_u64<BigEndian>(value);
+                &'a buf
+            },
+            _ => unimplemented!()
+        }
+    }
+}
+
+#[unstable(feature="encode")]
+impl Encode for InstCell {
+    #[unstable(feature="encode")]
+    fn emit<'a>(&'a self) -> &'a [u8] {
+        unimplemented!()
+    }
+}
+
+#[unstable(feature="encode")]
+impl Encode for ListCell {
+    #[unstable(feature="encode")]
+    fn emit<'a>(&'a self) -> &'a [u8] {
         unimplemented!()
     }
 }
