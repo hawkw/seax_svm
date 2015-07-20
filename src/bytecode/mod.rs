@@ -276,7 +276,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                     b if b < 0x30               => decode_inst(&b)
                                                        .map(SVMCell::InstCell)
                                                        .map(Some),
-                    b if b > 0xC1 && b < 0xCF   => self.decode_const(&b)
+                    b if b >= 0xC1 && b < 0xCF  => self.decode_const(&b)
                                                        .map(SVMCell::AtomCell)
                                                        .map(Some),
                     0xC0                        => self.decode_cons()

@@ -39,3 +39,11 @@ fn prop_encode_sint () {
     }
     quickcheck(prop as fn(i64) -> bool);
 }
+
+#[test]
+fn test_encode_uint_zero () {
+    let cell = SVMCell::AtomCell(Atom::UInt(0));
+    let encoded = cell.emit();
+    let decoded = Decoder::new(&mut Cursor::new(encoded)).next_cell();
+    assert_eq!(decoded, Ok(Some(cell)))
+}
