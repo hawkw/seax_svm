@@ -27,6 +27,9 @@ pub mod slist;
 #[stable(feature="vm_core", since="0.1.2")]
 pub mod cell;
 
+#[unstable(feature="bytecode")]
+pub mod bytecode;
+
 #[cfg(test)]
 mod tests;
 
