@@ -42,12 +42,12 @@ impl fmt::Debug for SVMCell {
 #[derive(PartialEq,PartialOrd,Copy,Clone)]
 #[stable(feature="vm_core", since="0.1.0")]
 pub enum Atom {
-    /// Unsigned integer atom (machine size)
-    #[stable(feature="vm_core", since="0.1.0")]
-    UInt(usize),
-    /// Signed integer atom (machine size)
-    #[stable(feature="vm_core", since="0.1.0")]
-    SInt(isize),
+    /// Unsigned integer atom (machine 64)
+    #[stable(feature="vm_core", since="0.3.0")]
+    UInt(u64),
+    /// Signed integer atom (machine 64)
+    #[stable(feature="vm_core", since="0.3.0")]
+    SInt(i64),
     /// Floating point number atom (64-bits)
     #[stable(feature="vm_core", since="0.1.0")]
     Float(f64),
@@ -81,11 +81,11 @@ impl fmt::Debug for Atom {
     }
 }
 
-#[stable(feature="vm_core", since="0.1.0")]
+#[stable(feature="vm_core", since="0.3.0")]
 impl ops::Add for Atom {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     type Output = Atom;
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     fn add(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -99,10 +99,10 @@ impl ops::Add for Atom {
             (SInt(a), Float(b))     => Float(a as f64 + b),
             (UInt(a), Float(b))     => Float(a as f64 + b),
             // uint + sint: coerce to sint
-            (UInt(a), SInt(b))      => SInt(a as isize + b),
-            (SInt(a), UInt(b))      => SInt(a + b as isize),
+            (UInt(a), SInt(b))      => SInt(a as i64 + b),
+            (SInt(a), UInt(b))      => SInt(a + b as i64),
             // char + any: coerce to char
-            // because of the supported operations on Rusizet chars,
+            // because of the supported operations on Ru64t chars,
             // everything has to be cast to u8 (byte) to allow
             // arithmetic ops and then cast back to char.
             (Char(a), UInt(b))      => Char((a as u8 + b as u8) as char),
@@ -115,11 +115,11 @@ impl ops::Add for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.1.0")]
+#[stable(feature="vm_core", since="0.3.0")]
 impl ops::Sub for Atom {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     type Output = Atom;
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     fn sub(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -133,8 +133,8 @@ impl ops::Sub for Atom {
             (SInt(a), Float(b))     => Float(a as f64 - b),
             (UInt(a), Float(b))     => Float(a as f64 - b),
             // uint + sint: coerce to sint
-            (UInt(a), SInt(b))      => SInt(a as isize - b),
-            (SInt(a), UInt(b))      => SInt(a - b as isize),
+            (UInt(a), SInt(b))      => SInt(a as i64 - b),
+            (SInt(a), UInt(b))      => SInt(a - b as i64),
             // char + any: coerce to char
             (Char(a), UInt(b))      => Char((a as u8 - b as u8) as char),
             (Char(a), SInt(b))      => Char((a as u8 - b as u8) as char),
@@ -146,11 +146,11 @@ impl ops::Sub for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.1.0")]
+#[stable(feature="vm_core", since="0.3.0")]
 impl ops::Div for Atom {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     type Output = Atom;
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     fn div(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -164,8 +164,8 @@ impl ops::Div for Atom {
             (SInt(a), Float(b))     => Float(a as f64 / b),
             (UInt(a), Float(b))     => Float(a as f64 / b),
             // uint + sint: coerce to sint
-            (UInt(a), SInt(b))      => SInt(a as isize / b),
-            (SInt(a), UInt(b))      => SInt(a / b as isize),
+            (UInt(a), SInt(b))      => SInt(a as i64 / b),
+            (SInt(a), UInt(b))      => SInt(a / b as i64),
             // char + any: coerce to char
             (Char(a), UInt(b))      => Char((a as u8 / b as u8) as char),
             (Char(a), SInt(b))      => Char((a as u8 / b as u8) as char),
@@ -177,12 +177,12 @@ impl ops::Div for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.1.0")]
+#[stable(feature="vm_core", since="0.3.0")]
 impl ops::Mul for Atom {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     type Output = Atom;
 
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     fn mul(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -196,8 +196,8 @@ impl ops::Mul for Atom {
             (SInt(a), Float(b))     => Float(a as f64* b),
             (UInt(a), Float(b))     => Float(a as f64* b),
             // uint + sint: coerce to sint
-            (UInt(a), SInt(b))      => SInt(a as isize * b),
-            (SInt(a), UInt(b))      => SInt(a * b as isize),
+            (UInt(a), SInt(b))      => SInt(a as i64 * b),
+            (SInt(a), UInt(b))      => SInt(a * b as i64),
             // char + any: coerce to char
             (Char(a), UInt(b))      => Char((a as u8 * b as u8) as char),
             (Char(a), SInt(b))      => Char((a as u8 * b as u8) as char),
@@ -209,12 +209,12 @@ impl ops::Mul for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.1.0")]
+#[stable(feature="vm_core", since="0.3.0")]
 impl ops::Rem for Atom {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     type Output = Atom;
 
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[stable(feature="vm_core", since="0.3.0")]
     fn rem(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -228,8 +228,8 @@ impl ops::Rem for Atom {
             (SInt(a), Float(b))     => Float(a as f64 % b),
             (UInt(a), Float(b))     => Float(a as f64 % b),
             // uint + sint: coerce to sint
-            (UInt(a), SInt(b))      => SInt(a as isize % b),
-            (SInt(a), UInt(b))      => SInt(a % b as isize),
+            (UInt(a), SInt(b))      => SInt(a as i64 % b),
+            (SInt(a), UInt(b))      => SInt(a % b as i64),
             // char + any: coerce to char
             (Char(a), UInt(b))      => Char((a as u8 % b as u8) as char),
             (Char(a), SInt(b))      => Char((a as u8 % b as u8) as char),
@@ -279,7 +279,7 @@ pub enum Inst {
     ///
     ///  Takes one list argument representing a function and constructs
     ///  a closure (a pair containing the function and the current
-    ///  environment) and pusizehes that onto the stack.
+    ///  environment) and pushes that onto the stack.
     ///
     /// _Operational semantics_: `(s, e, (LDF f.c), d) → ( ([f e].s), e, c, d)`
     ///
@@ -287,7 +287,7 @@ pub enum Inst {
     LDF,
     /// `join`
     ///
-    /// Pops a list reference from the dump and makes thisize the new value
+    /// Pops a list reference from the dump and makes thi64 the new value
     /// of `C`. This instruction occurs at the end of both alternatives of
     ///  a `sel`.
     ///
@@ -311,18 +311,18 @@ pub enum Inst {
     /// `ret`: `Ret`urn.
     ///
     /// Pops one return value from the stack, restores
-    /// `S`, `E`, and `C` from the dump, and pusizehes
+    /// `$s`, `$e`, and `$c` from the dump, and pushes
     /// the return value onto the now-current stack.
     #[stable(feature="vm_core", since="0.1.0")]
     RET,
     /// `dum`: `Dum`my.
     ///
-    /// Pops a dummy environment (an empty list) onto the `E` stack.
+    /// Pops a dummy environment (an empty list) onto the `$e` stack.
     #[stable(feature="vm_core", since="0.1.0")]
     DUM,
     /// `rap`: `R`ecursive `Ap`ply.
     /// Works like `ap`, only that it replaces an occurrence of a
-    /// dummy environment with the current one, thusize making recursive
+    /// dummy environment with the current one, thus making recursive
     ///  functions possible.
     #[stable(feature="vm_core", since="0.1.0")]
     RAP,
@@ -331,7 +331,7 @@ pub enum Inst {
     /// Expects two list arguments on the control stack, and pops a value
     /// from the stack. The first list is executed if the popped value
     /// was non-nil, the second list otherwise. Before one of these list
-    /// pointers is made the new `c`, a pointer to the instruction
+    /// pointers is made the new `$c`, a pointer to the instruction
     /// following `sel` is saved on the dump.
     ///
     /// __Operational semantics__: `(v.s, e, SEL.true.false.c, d) → (s, e, (if v then true else false), c.d)`
@@ -340,47 +340,47 @@ pub enum Inst {
     SEL,
     /// `add`
     ///
-    /// Pops two numbers off of the stack and adds them, pusizehing the
-    /// result onto the stack. Thisize will up-convert integers to floating
+    /// Pops two numbers off of the stack and adds them, pu64hing the
+    /// result onto the stack. This will up-convert integers to floating
     /// point if necessary.
     ///
     /// TODO: figure out what happens when you try to add things that aren't
-    /// numbers (maybe the compiler won't let thisize happen?).
+    /// numbers (maybe the compiler won't let this happen?).
     #[stable(feature="vm_core", since="0.1.0")]
     ADD,
     /// `sub`: `Sub`tract
     ///
     /// Pops two numbers off of the stack and subtracts the first from the
-    /// second, pusizehing the result onto the stack. This will up-convert
+    /// second, pu64hing the result onto the stack. This will up-convert
     /// integers to floating point if necessary.
     ///
     /// TODO: figure out what happens when you try to subtract things that
-    /// aren't numbers (maybe the compiler won't let thisize happen?).
+    /// aren't numbers (maybe the compiler won't let thi64 happen?).
     #[stable(feature="vm_core", since="0.1.0")]
     SUB,
     /// `mul`: `Mul`tiply
     ///
-    /// Pops two numbers off of the stack and multiplies them, pusizehing the
+    /// Pops two numbers off of the stack and multiplies them, pu64hing the
     /// result onto the stack. This will up-convert integers to floating
     /// point if necessary.
     ///
     /// TODO: figure out what happens when you try to multiply things that
-    /// aren't numbers (maybe the compiler won't let thisize happen?).
+    /// aren't numbers (maybe the compiler won't let thi64 happen?).
     #[stable(feature="vm_core", since="0.1.0")]
     MUL,
     /// `div`: `Div`ide
     ///
     /// Pops two numbers off of the stack and divides the first by the second,
-    /// pushing the result onto the stack. This performs integer divisizeion.
+    /// pushing the result onto the stack. This performs integer divi64ion.
     ///
     /// TODO: figure out what happens when you try to divide things that
-    /// aren't numbers (maybe the compiler won't let thisize happen?).
+    /// aren't numbers (maybe the compiler won't let thi64 happen?).
     #[stable(feature="vm_core", since="0.1.0")]
     DIV,
     /// `fdiv`: `F`loating-point `div`ide
     ///
     /// Pops two numbers off of the stack and divides the first by the second,
-    /// pusizehing the result onto the stack. This performs float divisizeion.
+    /// pu64hing the result onto the stack. This performs float divi64ion.
     ///
     /// TODO: figure out what happens when you try to divide things that
     /// aren't numbers (maybe the compiler won't let this happen?).
@@ -404,7 +404,7 @@ pub enum Inst {
     /// `gt`: `G`reater `t`han
     ///
     /// Pops two numbers on the stack and puts a 'true' on the stack
-    /// if the first atom isize greater than the other atom, false otherwisizee.
+    /// if the first atom i64 greater than the other atom, false otherwi64e.
     #[stable(feature="vm_core", since="0.1.0")]
     GT,
     /// `gte`: `G`reater `t`han or `e`qual
@@ -467,7 +467,7 @@ pub enum Inst {
     /// Applies a closure and captures the continuation that can
     /// then be applied with `ap`.
     #[unstable(feature="callcc")]
-    APCC
+    APCC,
 }
 
 #[cfg(test)]
@@ -481,13 +481,13 @@ mod tests {
         a = Char('a');
         assert_eq!(format!("{}", a), "'a'");
 
-        a = UInt(1usize);
+        a = UInt(1u64);
         assert_eq!(format!("{}", a), "1");
 
-        a = SInt(42isize);
+        a = SInt(42i64);
         assert_eq!(format!("{}", a), "42");
 
-        a = SInt(-1isize);
+        a = SInt(-1i64);
         assert_eq!(format!("{}", a), "-1");
 
         a = Float(5.55f64);

@@ -332,6 +332,7 @@ impl<T> List<T> {
         }
     }
 
+
     /// Optionally index the list.
     ///
     /// Unlike list indexing syntax (`list[i]`), this returns `None`
@@ -360,22 +361,22 @@ impl<T> List<T> {
     /// assert_eq!(a_list.get(10), None);
     /// # }
     /// ```
-    #[stable(feature="list",since="0.2.5")]
-    pub fn get<'a>(&'a self, index: usize) -> Option<&'a T> {
+    #[stable(feature="list",since="0.3.0")]
+    pub fn get<'a>(&'a self, index: u64) -> Option<&'a T> {
         match index {
-            0usize => match *self {
+            0 => match *self {
                 Cons(ref car, _) => Some(&car),
                 Nil => None
             },
-            1usize => match *self {
+            1 => match *self {
                 Cons(_, box Cons(ref cdr, _)) => Some(&cdr),
                 _ => None
             },
-            i if i == self.length() => Some(self.last()),
-            i if i > self.length()  => None,
-            i if i > 1usize => {
+            i if i == self.length() as u64 => Some(self.last()),
+            i if i > self.length() as u64  => None,
+            i if i > 1 => {
                 let mut it = self.iter();
-                for _ in 0usize .. i{
+                for _ in 0 .. i{
                     it.next();
                 }
                 it.next()
@@ -539,6 +540,99 @@ impl<T> Index<usize> for List<T> {
             i if i > 1usize => {
                 let mut it = self.iter();
                 for _ in 0usize .. i{
+                    it.next();
+                }
+                it.next().unwrap()
+            },
+            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
+        }
+    }
+}
+
+/// Implementation of indexing for `List<T>`.
+///
+/// # Examples:
+/// ```
+/// # #[macro_use] extern crate seax_svm;
+/// # use seax_svm::slist;
+/// # use seax_svm::slist::List;
+/// # use seax_svm::slist::List::{Cons, Nil};
+/// # fn main () {
+/// let list = list!(1,2,3,4,5,6);
+/// assert_eq!(list[0usize], 1);
+/// # }
+/// ```
+#[stable(feature="list", since="0.3.0")]
+impl<T> Index<u64> for List<T> {
+    #[stable(feature="list", since="0.3.0")]
+    type Output = T;
+
+    #[inline]
+    #[stable(feature="list", since="0.3.0")]
+    fn index<'a>(&'a self, _index: u64) -> &'a T {
+        match _index {
+            0 => match *self {
+                Cons(ref car, _) => car,
+                Nil => panic!("List index {} out of range", _index)
+            },
+            1 => match *self {
+                Cons(_, box Cons(ref cdr, _)) => cdr,
+                Cons(_, box Nil) => panic!("List index {} out of range", _index),
+                Nil => panic!("List index {} out of range", _index)
+            },
+            i if i == self.length() as u64 => self.last(),
+            i if i > self.length() as u64  => panic!("List index {:?} out of range.", _index),
+            i if i > 1 => {
+                let mut it = self.iter();
+                for _ in 0 .. i{
+                    it.next();
+                }
+                it.next().unwrap()
+            },
+            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
+        }
+    }
+}
+
+/// Implementation of indexing for `List<T>`.
+///
+/// # Examples:
+/// ```
+/// # #[macro_use] extern crate seax_svm;
+/// # use seax_svm::slist;
+/// # use seax_svm::slist::List;
+/// # use seax_svm::slist::List::{Cons, Nil};
+/// # fn main () {
+/// let list = list!(1,2,3,4,5,6);
+/// assert_eq!(list[0isize], 1);
+/// # }
+/// ```
+#[stable(feature="list", since="0.3.0")]
+#[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+impl<T> Index<i64> for List<T> {
+    #[stable(feature="list", since="0.3.0")]
+    #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+    type Output = T;
+
+    #[inline]
+    #[stable(feature="list", since="0.3.0")]
+    #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+    fn index<'a>(&'a self, _index: i64) -> &'a T {
+        match _index {
+            0 => match *self {
+                Cons(ref car, _) => car,
+                Nil => panic!("List index {} out of range", _index)
+            },
+            1 => match *self {
+                Cons(_, box Cons(ref cdr, _)) => cdr,
+                Cons(_, box Nil) => panic!("List index {} out of range", _index),
+                Nil => panic!("List index {} out of range", _index)
+            },
+            i if i == self.length() as i64 => self.last(),
+            i if i > self.length() as i64  => panic!("List index {:?} out of range.", _index),
+            i if i > 1 => {
+                let mut it = self.iter();
+                for _ in 0 .. i{
                     it.next();
                 }
                 it.next().unwrap()
