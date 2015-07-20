@@ -250,7 +250,13 @@ impl<'a, R> Decoder<'a, R> where R: Read {
         match self.source.read(&mut buf) {
             Ok(0)       => Err(String::from(
                 "Reached end of source unexpectedly while decoding cons cell")),
-            Ok(_)       => unimplemented!(),
+            Ok(_)       => self.next_cell()
+                               .and_then(|car|
+                                   (car, try!(self.next_cell()))
+                                )
+                               .and_then(|(car, cdr)|
+                                    Some(box list!(car,cdr))
+                                )
             Err(why)    => Err(String::from(why.description()))
         }
 
