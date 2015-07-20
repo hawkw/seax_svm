@@ -307,13 +307,13 @@ impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
 #[unstable(feature="encode")]
 pub trait Encode {
     #[unstable(feature="encode")]
-    fn emit<'a>(&'a self) -> &'a [u8];
+    fn emit(&self) -> Vec<u8>;
 }
 
 #[unstable(feature="encode")]
 impl Encode for SVMCell {
     #[unstable(feature="encode")]
-    fn emit<'a>(&'a self) -> &'a [u8] {
+    fn emit(&self) -> Vec<u8> {
         match *self {
             AtomCell(ref atom) => atom.emit(),
             InstCell(ref inst) => inst.emit(),
@@ -325,27 +325,31 @@ impl Encode for SVMCell {
 #[unstable(feature="encode")]
 impl Encode for Atom {
     #[unstable(feature="encode")]
-    fn emit<'a>(&'a self) -> &'a [u8] {
+    fn emit(&self) -> Vec<u8> {
         match *self {
             UInt(value) => {
-                let mut buf = [0xC1; 9];
-                BigEndian::write_u64(&mut buf[1..8],value);
-                &buf
+                let mut buf = vec![0xC1];
+                buf.write_u64::<BigEndian>(value)
+                   .unwrap();
+                buf
             },
             SInt(value) => {
-                let mut buf = [0xC2; 9];
-                BigEndian::write_i64(&mut buf[1..8],value);
-                &buf
+                let mut buf = vec![0xC2];
+                buf.write_i64::<BigEndian>(value)
+                   .unwrap();
+                buf
             },
             Char(value) => {
-                let mut buf = [0xC3; 5];
-                BigEndian::write_u32(&mut buf[1..4], value as u32);
-                &buf
+                let mut buf = vec![0xC3];
+                buf.write_u32::<BigEndian>(value as u32)
+                   .unwrap();
+                buf
             },
             Float(value) => {
-                let mut buf = [0xC4; 9];
-                BigEndian::write_f64(&mut buf[1..8],value);
-                &buf
+                let mut buf = vec![0xC4];
+                buf.write_f64::<BigEndian>(value)
+                   .unwrap();
+                buf
             }
         }
     }
@@ -354,7 +358,7 @@ impl Encode for Atom {
 #[unstable(feature="encode")]
 impl Encode for Inst {
     #[unstable(feature="encode")]
-    fn emit<'a>(&'a self) -> &'a [u8] {
+    fn emit(&self) -> Vec<u8> {
         unimplemented!()
     }
 }
@@ -362,7 +366,7 @@ impl Encode for Inst {
 #[unstable(feature="encode")]
 impl Encode for List<SVMCell> {
     #[unstable(feature="encode")]
-    fn emit<'a>(&'a self) -> &'a [u8] {
+    fn emit(&self) -> Vec<u8> {
         unimplemented!()
     }
 }
