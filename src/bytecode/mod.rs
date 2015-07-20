@@ -123,6 +123,7 @@
 
 extern crate byteorder;
 
+use self::byteorder::ByteOrder;
 use self::byteorder::BigEndian; // big-endian chosen arbitrarily because I'm Good At Computers
 use self::byteorder::{ReadBytesExt,WriteBytesExt};
 
@@ -131,11 +132,16 @@ use std::io::Read;
 use std::char;
 
 use super::slist::List;
+use super::slist::List::*;
 use super::SVMCell;
 use super::SVMCell::*;
 use super::Atom;
-use super::Inst::*;
+use super::Atom::*;
 use super::Inst;
+use super::Inst::*;
+
+#[cfg(test)]
+mod tests;
 
 /// block reserved for future opcodes
 const RESERVED_START: u8 = 0x1D;
@@ -251,9 +257,9 @@ impl<'a, R> Decoder<'a, R> where R: Read {
             Ok(0)       => Err(String::from(
                 "Reached end of source unexpectedly while decoding cons cell")),
             Ok(_)       => self.next_cell()
-                               .and_then(|car| (car, try!(self.next_cell())) )
-                               .and_then(|(car, cdr)| Some(box list!(car,cdr))
-                                )
+                               .and_then( |car| self.next_cell()
+                                                    .map(|cdr| (car.unwrap(),cdr.unwrap()) ) )
+                               .map( |(car, cdr)| Some(box list!(car,cdr)) ),
             Err(why)    => Err(String::from(why.description()))
         }
 
@@ -317,36 +323,36 @@ impl Encode for SVMCell {
 }
 
 #[unstable(feature="encode")]
-impl Encode for AtomCell {
+impl Encode for Atom {
     #[unstable(feature="encode")]
     fn emit<'a>(&'a self) -> &'a [u8] {
         match *self {
-            UInt(ref value) => {
+            UInt(value) => {
                 let mut buf = [0xC1; 9];
-                BigEndian::write_u64(&buf[1..8],value);
-                &'a buf
+                BigEndian::write_u64(&mut buf[1..8],value);
+                &buf
             },
-            SInt(ref value) => {
+            SInt(value) => {
                 let mut buf = [0xC2; 9];
-                BigEndian::write_i64(&buf[1..8],value);
-                &'a buf
+                BigEndian::write_i64(&mut buf[1..8],value);
+                &buf
             },
-            Char(ref value) => {
+            Char(value) => {
                 let mut buf = [0xC3; 5];
-                BigEndian::write_u32(&buf[1..4], value as u32);
-                &'a buf
+                BigEndian::write_u32(&mut buf[1..4], value as u32);
+                &buf
             },
-            Float(ref value) => {
+            Float(value) => {
                 let mut buf = [0xC4; 9];
-                BigEndian::write_f64(&buf[1..8],value);
-                &'a buf
+                BigEndian::write_f64(&mut buf[1..8],value);
+                &buf
             }
         }
     }
 }
 
 #[unstable(feature="encode")]
-impl Encode for InstCell {
+impl Encode for Inst {
     #[unstable(feature="encode")]
     fn emit<'a>(&'a self) -> &'a [u8] {
         unimplemented!()
@@ -354,7 +360,7 @@ impl Encode for InstCell {
 }
 
 #[unstable(feature="encode")]
-impl Encode for ListCell {
+impl Encode for List<SVMCell> {
     #[unstable(feature="encode")]
     fn emit<'a>(&'a self) -> &'a [u8] {
         unimplemented!()
