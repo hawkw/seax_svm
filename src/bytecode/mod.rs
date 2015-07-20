@@ -188,7 +188,7 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
         0x1B => Ok(CAR),
         0x1C => Ok(LDC),
         b if b >= RESERVED_START && b <= (RESERVED_START + RESERVED_LEN) =>
-            Err(format!("Unimplemented: reserved byte {:?}", b)),
+            Err(format!("Unimplemented: reserved byte {:#X}", b)),
         b if b > (RESERVED_START + RESERVED_LEN) => Err(String::from("byte too high")),
         _  => panic!("Got a byte that was weird") // Should require an act of God.
     }
@@ -281,7 +281,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                                                        .map(Some),
                     0xC0                        => self.decode_cons()
                                                        .map(|cell| cell.map(SVMCell::ListCell)),
-                    b                           => Err(format!("Unsupported byte {:?}", b))
+                    b                           => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
