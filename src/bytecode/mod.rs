@@ -322,12 +322,25 @@ impl Encode for AtomCell {
     fn emit<'a>(&'a self) -> &'a [u8] {
         match *self {
             UInt(ref value) => {
-                let mut buf = [0x00; 9];
-                buf[0] = 0xC1;
-                &buf[1..8].write_u64<BigEndian>(value);
+                let mut buf = [0xC1; 9];
+                BigEndian::write_u64(&buf[1..8],value);
                 &'a buf
             },
-            _ => unimplemented!()
+            SInt(ref value) => {
+                let mut buf = [0xC2; 9];
+                BigEndian::write_i64(&buf[1..8],value);
+                &'a buf
+            },
+            Char(ref value) => {
+                let mut buf = [0xC3; 5];
+                BigEndian::write_u32(&buf[1..4], value as u32);
+                &'a buf
+            },
+            Float(ref value) => {
+                let mut buf = [0xC4; 9];
+                BigEndian::write_f64(&buf[1..8],value);
+                &'a buf
+            }
         }
     }
 }
