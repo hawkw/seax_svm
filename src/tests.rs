@@ -338,8 +338,8 @@ fn test_eval_join() {
             )))
     }.eval(None, true).unwrap().0;
     assert_eq!(state.dump.peek(), None);
-    assert_eq!(state.control[0usize], AtomCell(SInt(1)));
-    assert_eq!(state.control[1usize], AtomCell(SInt(2)));
+    assert_eq!(state.control[0u64], AtomCell(SInt(1)));
+    assert_eq!(state.control[1u64], AtomCell(SInt(2)));
 }
 
 #[test]
@@ -1187,17 +1187,17 @@ fn test_eval_ret() {
     }.eval(None, true).unwrap().0;
     // stack should have return arg + first elem on dump
     assert_eq!(state.stack.peek(), Some(&AtomCell(SInt(100)))); // test these using peek for now since indexing is borked
-    assert_eq!(state.stack[0usize], AtomCell(SInt(100)));
-    assert_eq!(state.stack[1usize], AtomCell(Char('S')));
-    assert_eq!(state.stack[2usize], AtomCell(Char('L')));
+    assert_eq!(state.stack[0u64], AtomCell(SInt(100)));
+    assert_eq!(state.stack[1u64], AtomCell(Char('S')));
+    assert_eq!(state.stack[2u64], AtomCell(Char('L')));
     // env should have second element from dump
     assert_eq!(state.env.peek(), Some(&ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('L'))))));
-    assert_eq!(state.env[0usize], ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('L')))));
-    assert_eq!(state.env[1usize], ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('D')))));
+    assert_eq!(state.env[0u64], ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('L')))));
+    assert_eq!(state.env[1u64], ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('D')))));
     // control should have third element from dump
     assert_eq!(state.control.peek(), Some(&AtomCell(Char('C'))));
-    assert_eq!(state.control[0usize], AtomCell(Char('C')));
-    assert_eq!(state.control[1usize], AtomCell(Char('L')));
+    assert_eq!(state.control[0u64], AtomCell(Char('C')));
+    assert_eq!(state.control[1u64], AtomCell(Char('L')));
     assert_eq!(state.dump.peek(), None);
 }
 
