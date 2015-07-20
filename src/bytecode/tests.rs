@@ -41,6 +41,17 @@ fn prop_encode_sint () {
 }
 
 #[test]
+fn prop_encode_char () {
+    fn prop (x: char) -> bool {
+        let cell = SVMCell::AtomCell(Atom::Char(x));
+        let encoded = cell.emit();
+        let decoded = Decoder::new(&mut Cursor::new(encoded)).next_cell();
+        decoded == Ok(Some(cell))
+    }
+    quickcheck(prop as fn(char) -> bool);
+}
+
+#[test]
 fn test_encode_uint_zero () {
     let cell = SVMCell::AtomCell(Atom::UInt(0));
     let encoded = cell.emit();
