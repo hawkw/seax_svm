@@ -172,7 +172,7 @@ fn test_mul_type_error () {
 // ----- QuickCheck property tests (WIP) ------------------------------
 #[test]
 fn prop_eval_ldc_sint () {
-    fn prop  (x: isize) -> bool {
+    fn prop  (x: i64) -> bool {
         let state = State {
             stack: Stack::empty(),
             env: Stack::empty(),
@@ -182,12 +182,12 @@ fn prop_eval_ldc_sint () {
 
         state.stack.peek() == Some(&AtomCell(SInt(x)))
     }
-    quickcheck(prop as fn(isize) -> bool);
+    quickcheck(prop as fn(i64) -> bool);
 }
 
 #[test]
 fn prop_eval_ldc_uint () {
-    fn prop (x: usize) -> bool {
+    fn prop (x: u64) -> bool {
         let state = State {
             stack: Stack::empty(),
             env: Stack::empty(),
@@ -198,7 +198,7 @@ fn prop_eval_ldc_uint () {
         state.stack.peek() == Some(&AtomCell(UInt(x)))
     }
 
-    quickcheck(prop as fn(usize) -> bool);
+    quickcheck(prop as fn(u64) -> bool);
 }
 
 #[test]
