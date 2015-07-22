@@ -124,9 +124,7 @@
 
 extern crate byteorder;
 
-use self::byteorder::ByteOrder;
-use self::byteorder::BigEndian; // big-endian chosen arbitrarily because I'm Good At Computers
-use self::byteorder::{ReadBytesExt,WriteBytesExt};
+use self::byteorder::{ByteOrder, BigEndian, ReadBytesExt, WriteBytesExt};
 
 use std::error::Error;
 use std::io::Read;
@@ -134,11 +132,9 @@ use std::char;
 
 use super::slist::List;
 use super::slist::List::*;
-use super::SVMCell;
+use super::{SVMCell,Atom,Inst};
 use super::SVMCell::*;
-use super::Atom;
 use super::Atom::*;
-use super::Inst;
 use super::Inst::*;
 
 #[cfg(test)]
