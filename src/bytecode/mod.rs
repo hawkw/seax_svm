@@ -65,7 +65,8 @@
 //!   0x1A  | CAR (a . b)   |
 //!   0x1B  | CDR (a . b)   |
 //!   0x1C  | LDC           |
-//!   0x1D  | reserved      |
+//!   0x1D  | STOP          |
+//!   0x1E  | reserved      |
 //!         |     ...       |
 //!   0x30  | reserved      |
 //!
@@ -144,8 +145,8 @@ use super::Inst::*;
 mod tests;
 
 /// block reserved for future opcodes
-const RESERVED_START: u8 = 0x1D;
-const RESERVED_LEN: u8   = 0x13;
+const RESERVED_START: u8 = 0x1E;
+const RESERVED_LEN: u8   = 0x12;
 
 const VERSION: u16       = 0x0000;
 
@@ -184,9 +185,10 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
         0x17 => Ok(READC),
         0x18 => Ok(WRITEC),
         0x19 => Ok(CONS),
-        0x1A => Ok(CDR),
-        0x1B => Ok(CAR),
+        0x1A => Ok(CAR),
+        0x1B => Ok(CDR),
         0x1C => Ok(LDC),
+        0x1D => Ok(STOP),
         b if b >= RESERVED_START && b <= (RESERVED_START + RESERVED_LEN) =>
             Err(format!("Unimplemented: reserved byte {:#X}", b)),
         b if b > (RESERVED_START + RESERVED_LEN) => Err(String::from("byte too high")),
@@ -359,7 +361,38 @@ impl Encode for Atom {
 impl Encode for Inst {
     #[unstable(feature="encode")]
     fn emit(&self) -> Vec<u8> {
-        unimplemented!()
+        match *self {
+            NIL     => vec![0x00],
+            LD      => vec![0x01],
+            LDF     => vec![0x02],
+            AP      => vec![0x03],
+            APCC    => vec![0x04],
+            JOIN    => vec![0x05],
+            RAP     => vec![0x06],
+            RET     => vec![0x07],
+            DUM     => vec![0x08],
+            SEL     => vec![0x09],
+            ADD     => vec![0x0A],
+            SUB     => vec![0x0B],
+            MUL     => vec![0x0C],
+            DIV     => vec![0x0D],
+            MOD     => vec![0x0E],
+            FDIV    => vec![0x0F],
+            EQ      => vec![0x10],
+            GT      => vec![0x11],
+            GTE     => vec![0x12],
+            LT      => vec![0x13],
+            LTE     => vec![0x14],
+            ATOM    => vec![0x15],
+            NULL    => vec![0x16],
+            READC   => vec![0x17],
+            WRITEC  => vec![0x18],
+            CONS    => vec![0x19],
+            CAR     => vec![0x1A],
+            CDR     => vec![0x1B],
+            LDC     => vec![0x1C],
+            STOP    => vec![0x1D]
+        }
     }
 }
 
