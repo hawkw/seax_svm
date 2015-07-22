@@ -1,5 +1,6 @@
 use super::{Encode,Decoder};
 use ::cell::{Atom,Inst,SVMCell};
+use ::slist::List::{Cons,Nil};
 
 use std::io::Cursor;
 
@@ -177,4 +178,11 @@ impl_encode_test!(
 impl_encode_test!(
     test_encode_inst_stop,
     SVMCell::InstCell(Inst::STOP)
+);
+impl_encode_test!(
+    test_encode_simple_program,
+    SVMCell::ListCell(box list!(
+        SVMCell::InstCell(Inst::LDC),
+        SVMCell::AtomCell(Atom::SInt(1))
+    ))
 );
