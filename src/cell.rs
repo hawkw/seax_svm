@@ -3,8 +3,7 @@ pub use self::Atom::*;
 
 use ::slist::List;
 
-use std::fmt;
-use std::ops;
+use std::{fmt,ops};
 
 #[derive(PartialEq,Clone)]
 #[stable(feature="vm_core", since="0.1.0")]

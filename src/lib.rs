@@ -37,9 +37,8 @@ mod tests;
 /// support code.
 
 // Reexports
-pub use self::slist::List;
+pub use self::slist::{List, Stack};
 pub use self::slist::List::{Cons,Nil};
-pub use self::slist::Stack;
 pub use self::cell::{SVMCell,Atom,Inst};
 
 use self::cell::SVMCell::*;
