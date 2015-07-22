@@ -1,9 +1,6 @@
 sudo: false
 language: rust
-rust:
-  - nightly
-  - beta
-  - stable
+rust: nightly
 addons:
   apt:
     packages:
