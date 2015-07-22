@@ -315,7 +315,7 @@ impl Encode for SVMCell {
         match *self {
             AtomCell(ref atom) => atom.emit(),
             InstCell(ref inst) => inst.emit(),
-            ListCell(ref list) => list.emit()
+            ListCell(box ref list) => list.emit()
         }
     }
 }
@@ -393,9 +393,17 @@ impl Encode for Inst {
 }
 
 #[unstable(feature="encode")]
-impl Encode for List<SVMCell> {
+impl<T> Encode for List<T> where T: Encode {
     #[unstable(feature="encode")]
     fn emit(&self) -> Vec<u8> {
-        unimplemented!()
+        match *self {
+            Nil => vec![0x00],
+            Cons(ref it, box ref tail) => {
+                let mut result = vec![0xC0];
+                result.push_all(&it.emit());
+                result.push_all(&tail.emit());
+                result
+            }
+        }
     }
 }
