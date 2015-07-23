@@ -257,9 +257,27 @@ impl<'a, R> Decoder<'a, R> where R: Read {
     #[unstable(feature="decode")]
     fn decode_cons(&mut self) -> Result<Option<Box<List<SVMCell>>>, String> {
         self.next_cell()
-            .and_then(|car| self.next_cell()
-                                .map(|cdr| (car.unwrap(), cdr.unwrap()) ) )
-            .map(|(car, cdr)| Some(box list!(car, cdr)) )
+            .and_then(|car|
+                car.ok_or(String::from("EOF while decoding CONS cell"))
+            )
+            .and_then(|car| {
+                let mut buf = [0,1];
+                try!(self.source.read(&mut buf) // try to get next byte
+                         .map_err(|why| String::from(why.description())));
+                self.num_read += 1;
+                match buf[0] {
+                    0xC0 =>
+                        self.decode_cons()
+                            .and_then(|cdr| cdr.ok_or(
+                                String::from("EOF while decoding CONS")) )
+                            .map( |cdr| (car, cdr) ),
+                    0x00 => Ok((car, box Nil)),
+                    b    => Err(
+                        format!("Unexpected byte {:#X} while decoding CONS", b)
+                    )
+                }
+            })
+            .map(|(car, cdr)| Some(box Cons(car, cdr)) )
     }
 
     /// Decodes the next cell in the source
@@ -278,7 +296,6 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                                                        .map(Some),
                     0xC0                        => self.decode_cons()
                                                        .map(|cell| cell.map(SVMCell::ListCell)),
-                    0xCF                        => Ok(Some(SVMCell::ListCell(box Nil))),
                     b                           => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
@@ -403,7 +420,7 @@ impl<T> Encode for List<T> where T: Encode + Debug {
                 result.push_all(&tail.emit());
                 result
             },
-            Nil => vec![0xCF]
+            Nil => vec![0x00]
         }
     }
 }
