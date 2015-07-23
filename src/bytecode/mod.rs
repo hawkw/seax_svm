@@ -308,7 +308,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                     BYTE_CONS    => self.decode_cons()
                                         .map(|cell|
                                               cell.map(SVMCell::ListCell)
-                                        s),
+                                        ),
                     b            => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
