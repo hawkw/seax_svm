@@ -99,11 +99,11 @@
 //!    be expected, while if the opcode is in the CDR part, a new instruction or constant will
 //!    be expected.)
 //!
-//! 2. Atom constants (0xC1 ... 0xCF)
+//! 2. Atom constants (0xC1 ... 0xCE)
 //!
 //!    Any constants that are not CONS cells are atom constants. Atom constants are identified by
 //!    bytes in the range between 0xC1 and 0xCF, inclusive. Currently, 0xC1, 0xC2, 0xC3, and 0xC4
-//!    identify extant atom types, while 0xC5 ... 0xCF are reserved for future use.
+//!    identify extant atom types, while 0xC5 ... 0xCE are reserved for future use.
 //!
 //!    Once an atom constant identifying byte is read, the bytes that follow it will be read as
 //!    that type of atom. The number of bytes read depends on the length of the atom type, which is
@@ -113,13 +113,17 @@
 //! + 0xC1: uint atom (64-bit unsigned integer)
 //! + 0xC2: sint atom (64-bit signed integer)
 //! + 0xC3: char atom (32-bit Unicode scalar value)
-//! + 0xC4: float atom (64-bit double-precision floating point number)
+//! + 0xC4: float atom (64-bit double-precision floating point number
 //!
 //!    If additional primitive data types are added to the Seax VM, the bytes 0xC5 to 0xCF will
 //!    be used to identify those types.
 //!
 //!    Note that the type tag identifying a constant may be extracted by byte-masking the
 //!    identifying byte with the number 0x0F.
+//!
+//! 3. NIL cells (0xCF)
+//!
+//!    The byte pattern 0xCF encodes a nil cell.
 //!
 
 extern crate byteorder;
@@ -269,11 +273,12 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                     b if b < 0x30               => decode_inst(&b)
                                                        .map(SVMCell::InstCell)
                                                        .map(Some),
-                    b if b >= 0xC1 && b < 0xCF  => self.decode_const(&b)
+                    b if b >= 0xC1 && b < 0xCE  => self.decode_const(&b)
                                                        .map(SVMCell::AtomCell)
                                                        .map(Some),
                     0xC0                        => self.decode_cons()
                                                        .map(|cell| cell.map(SVMCell::ListCell)),
+                    0xCF                        => Ok(Some(SVMCell::ListCell(box Nil))),
                     b                           => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
@@ -393,18 +398,12 @@ impl<T> Encode for List<T> where T: Encode + Debug {
     fn emit(&self) -> Vec<u8> {
         match *self {
             Cons(ref it, box ref tail) => {
-                let mut string = String::new();
-                for byte in it.emit() {
-                    write!(&mut string, "{:#X} ", byte)
-                        .unwrap();
-                }
-                println!("it: {:?} -> {:?}", it, string);
                 let mut result = vec![0xC0];
                 result.push_all(&it.emit());
                 result.push_all(&tail.emit());
                 result
             },
-            Nil => vec![0x00]
+            Nil => vec![0xCF]
         }
     }
 }
