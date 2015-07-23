@@ -1,7 +1,8 @@
 Seax Virtual Machine (SVM)
 ==========================
 
-[![Build Status](https://img.shields.io/travis/hawkw/seax_svm/master.svg?style=flat-square)](https://travis-ci.org/hawkw/seax)
+[![Build Status](https://img.shields.io/travis/hawkw/seax_svm/master.svg?style=flat-square)](https://travis-ci.org/hawkw/seax_svm)
+[![Coverage](https://img.shields.io/codecov/c/github/hawkw/seax_svm/master.svg?style=flat-square)](http://codecov.io/github/hawkw/seax_svm?branch=master)
 [![Latest RustDoc](https://img.shields.io/badge/rustdoc-latest-green.svg?style=flat-square)](http://hawkweisman.me/seax/api/seax_svm/)
 [![Latest SVM release](https://img.shields.io/crates/v/seax_svm.svg?style=flat-square)](https://crates.io/crates/seax_svm)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/hawkw/seax/LICENSE)
@@ -13,4 +14,3 @@ Seax is a virtual machine based on the [SECD machine](http://en.wikipedia.org/wi
 SVM is distributed as a library so that a Seax runtime may be embedded in other software systems. That means that the code in this repository is not sufficient to compile and run Scheme programs for Seax on its own. The [hawkw/seax](https://github.com/hawkw/seax) repository contains the Seax command-line application, which you will probably want if you intend to develop programs targeting Seax. Currently, a [Scheme interpreter/compiler]((https://github.com/hawkw/seax_scheme)) is under active development, with other programming languages targeting Seax coming eventually.
 
 Please report all issues and feature requests to the main repository ([hawkw/seax](https://github.com/hawkw/seax)).
-

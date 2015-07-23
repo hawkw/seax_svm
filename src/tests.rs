@@ -5,10 +5,7 @@ use super::cell::Atom::*;
 use super::cell::SVMCell::*;
 use super::Inst::*;
 
-use std::io;
-
-// QuickCheck property tests are disabled due to rust-lang/cargo/#860
-//use quickcheck::quickcheck;
+use quickcheck::quickcheck;
 
 /*
 #[test]
@@ -170,8 +167,7 @@ fn test_mul_type_error () {
     }.eval(None, false);
 }*/
 
-// QuickCheck property tests are disabled due to rust-lang/cargo/#860
-/*
+// ----- QuickCheck property tests (WIP) ------------------------------
 #[test]
 fn prop_eval_ldc_sint () {
     fn prop  (x: isize) -> bool {
@@ -217,7 +213,6 @@ fn prop_eval_ldc_float () {
     }
     quickcheck(prop as fn(f64) -> bool);
 }
-*/
 
 #[test]
 fn test_empty_state() {
