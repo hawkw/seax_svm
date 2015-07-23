@@ -300,7 +300,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
-            Ok(_)    => panic!("[next_cell] Read too many bytes! This shouldn't happen"),
+            Ok(_)    => unreachable!(),
             Err(why) => Err(String::from(why.description()))
         }
     }
