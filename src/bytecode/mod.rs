@@ -192,10 +192,12 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
         0x1B => Ok(CDR),
         0x1C => Ok(LDC),
         0x1D => Ok(STOP),
-        b if b >= RESERVED_START && b <= (RESERVED_START + RESERVED_LEN) =>
+        b if b >= RESERVED_START && 
+             b <= (RESERVED_START + RESERVED_LEN) =>
             Err(format!("Unimplemented: reserved byte {:#X}", b)),
-        b if b > (RESERVED_START + RESERVED_LEN) => Err(String::from("byte too high")),
-        _  => panic!("Got a byte that was weird") // Should require an act of God.
+        b if b > (RESERVED_START + RESERVED_LEN) => 
+            Err(String::from("byte too high")),
+        _  => unreachable!() // Should require an act of God.
     }
 }
 
