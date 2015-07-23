@@ -1,6 +1,7 @@
 #![crate_name = "seax_svm"]
 #![stable(feature="vm_core", since="0.1.2")]
 #![crate_type = "lib"]
+#![feature(vec_push_all)]
 #![feature(box_syntax,box_patterns)]
 #![feature(staged_api)]
 #![staged_api]
@@ -29,6 +30,9 @@ pub mod slist;
 /// instruction.
 #[stable(feature="vm_core", since="0.1.2")]
 pub mod cell;
+
+#[unstable(feature="bytecode")]
+pub mod bytecode;
 
 #[cfg(test)]
 mod tests;
