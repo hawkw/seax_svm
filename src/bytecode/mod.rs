@@ -128,6 +128,7 @@ use self::byteorder::{ByteOrder, BigEndian, ReadBytesExt, WriteBytesExt};
 
 use std::error::Error;
 use std::io::Read;
+use std::fmt::{Debug,Write};
 use std::char;
 
 use super::slist::List;
@@ -248,19 +249,13 @@ impl<'a, R> Decoder<'a, R> where R: Read {
             _ => unimplemented!()
         }
     }
-
+    // Decodes a CONS cell
+    #[unstable(feature="decode")]
     fn decode_cons(&mut self) -> Result<Option<Box<List<SVMCell>>>, String> {
-        let mut buf = [0;1];
-        match self.source.read(&mut buf) {
-            Ok(0)       => Err(String::from(
-                "Reached end of source unexpectedly while decoding cons cell")),
-            Ok(_)       => self.next_cell()
-                               .and_then( |car| self.next_cell()
-                                                    .map(|cdr| (car.unwrap(),cdr.unwrap()) ) )
-                               .map( |(car, cdr)| Some(box list!(car,cdr)) ),
-            Err(why)    => Err(String::from(why.description()))
-        }
-
+        self.next_cell()
+            .and_then(|car| self.next_cell()
+                                .map(|cdr| (car.unwrap(), cdr.unwrap()) ) )
+            .map(|(car, cdr)| Some(box list!(car, cdr)) )
     }
 
     /// Decodes the next cell in the source
@@ -393,17 +388,23 @@ impl Encode for Inst {
 }
 
 #[unstable(feature="encode")]
-impl<T> Encode for List<T> where T: Encode {
+impl<T> Encode for List<T> where T: Encode + Debug {
     #[unstable(feature="encode")]
     fn emit(&self) -> Vec<u8> {
         match *self {
-            Nil => vec![0x00],
             Cons(ref it, box ref tail) => {
+                let mut string = String::new();
+                for byte in it.emit() {
+                    write!(&mut string, "{:#X} ", byte)
+                        .unwrap();
+                }
+                println!("it: {:?} -> {:?}", it, string);
                 let mut result = vec![0xC0];
                 result.push_all(&it.emit());
                 result.push_all(&tail.emit());
                 result
-            }
+            },
+            Nil => vec![0x00]
         }
     }
 }
