@@ -99,7 +99,7 @@
 //!    be expected, while if the opcode is in the CDR part, a new instruction or constant will
 //!    be expected.)
 //!
-//! 2. Atom constants (0xC1 ... 0xCE)
+//! 2. Atom constants (0xC1 ... 0xCF)
 //!
 //!    Any constants that are not CONS cells are atom constants. Atom constants are identified by
 //!    bytes in the range between 0xC1 and 0xCF, inclusive. Currently, 0xC1, 0xC2, 0xC3, and 0xC4
@@ -120,10 +120,6 @@
 //!
 //!    Note that the type tag identifying a constant may be extracted by byte-masking the
 //!    identifying byte with the number 0x0F.
-//!
-//! 3. NIL cells (0xCF)
-//!
-//!    The byte pattern 0xCF encodes a nil cell.
 //!
 
 extern crate byteorder;
@@ -148,6 +144,12 @@ mod tests;
 /// block reserved for future opcodes
 const RESERVED_START: u8 = 0x1E;
 const RESERVED_LEN: u8   = 0x12;
+/// block reserved for typetags
+const CONST_START: u8    = 0xC1;
+const CONST_LEN: u8      = 0x0E;
+/// important bytecodes
+const BYTE_CONS: u8      = 0xC0;
+const BYTE_NIL: u8       = 0x00;
 
 const VERSION: u16       = 0x0000;
 
@@ -160,7 +162,7 @@ pub struct Decoder<'a, R: 'a> {
 #[unstable(feature="decode")]
 fn decode_inst(byte: &u8) -> Result<Inst, String> {
     match *byte {
-        0x00 => Ok(NIL),
+        BYTE_NIL => Ok(NIL),
         0x01 => Ok(LD),
         0x02 => Ok(LDF),
         0x03 => Ok(AP),
@@ -267,13 +269,13 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                          .map_err(|why| String::from(why.description())));
                 self.num_read += 1;
                 match buf[0] {
-                    0xC0 =>
+                    BYTE_CONS =>
                         self.decode_cons()
                             .and_then(|cdr| cdr.ok_or(
                                 String::from("EOF while decoding CONS")) )
                             .map( |cdr| (car, cdr) ),
-                    0x00 => Ok((car, box Nil)),
-                    b    => Err(
+                    BYTE_NIL  => Ok((car, box Nil)),
+                    b         => Err(
                         format!("Unexpected byte {:#X} while decoding CONS", b)
                     )
                 }
@@ -291,15 +293,16 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                 // println!("Read {:#X}, {} bytes read", buf[0], self.num_read);
                 match buf[0] {
                     b if b < 0x30 => decode_inst(&b)
-                                         .map(SVMCell::InstCell)
-                                         .map(Some),
-                    b if b >= 0xC1 &&
-                         b < 0xCE => self.decode_const(&b)
-                                         .map(SVMCell::AtomCell)
-                                         .map(Some),
-                    0xC0          => self.decode_cons()
-                                         .map(|cell| cell.map(SVMCell::ListCell)),
-                    b             => Err(format!("Unsupported byte {:#X}", b))
+                                        .map(SVMCell::InstCell)
+                                        .map(Some),
+                    b if b >= CONST_START &&
+                         b < (CONST_START + CONST_LEN) =>
+                                    self.decode_const(&b)
+                                        .map(SVMCell::AtomCell)
+                                        .map(Some),
+                    BYTE_CONS    => self.decode_cons()
+                                        .map(|cell| cell.map(SVMCell::ListCell)),
+                    b            => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
@@ -389,7 +392,7 @@ impl Encode for Inst {
     #[unstable(feature="encode")]
     fn emit(&self) -> Vec<u8> {
         match *self {
-            NIL     => vec![0x00],
+            NIL     => vec![BYTE_NIL],
             LD      => vec![0x01],
             LDF     => vec![0x02],
             AP      => vec![0x03],
@@ -429,12 +432,12 @@ impl<T> Encode for List<T> where T: Encode + fmt::Debug {
     fn emit(&self) -> Vec<u8> {
         match *self {
             Cons(ref it, box ref tail) => {
-                let mut result = vec![0xC0];
+                let mut result = vec![BYTE_CONS];
                 result.push_all(&it.emit());
                 result.push_all(&tail.emit());
                 result
             },
-            Nil => vec![0x00]
+            Nil => vec![BYTE_NIL]
         }
     }
 }
