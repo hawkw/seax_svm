@@ -65,7 +65,8 @@
 //!   0x1A  | CAR (a . b)   |
 //!   0x1B  | CDR (a . b)   |
 //!   0x1C  | LDC           |
-//!   0x1D  | reserved      |
+//!   0x1D  | STOP          |
+//!   0x1E  | reserved      |
 //!         |     ...       |
 //!   0x30  | reserved      |
 //!
@@ -102,7 +103,7 @@
 //!
 //!    Any constants that are not CONS cells are atom constants. Atom constants are identified by
 //!    bytes in the range between 0xC1 and 0xCF, inclusive. Currently, 0xC1, 0xC2, 0xC3, and 0xC4
-//!    identify extant atom types, while 0xC5 ... 0xCF are reserved for future use.
+//!    identify extant atom types, while 0xC5 ... 0xCE are reserved for future use.
 //!
 //!    Once an atom constant identifying byte is read, the bytes that follow it will be read as
 //!    that type of atom. The number of bytes read depends on the length of the atom type, which is
@@ -112,7 +113,7 @@
 //! + 0xC1: uint atom (64-bit unsigned integer)
 //! + 0xC2: sint atom (64-bit signed integer)
 //! + 0xC3: char atom (32-bit Unicode scalar value)
-//! + 0xC4: float atom (64-bit double-precision floating point number)
+//! + 0xC4: float atom (64-bit double-precision floating point number
 //!
 //!    If additional primitive data types are added to the Seax VM, the bytes 0xC5 to 0xCF will
 //!    be used to identify those types.
@@ -123,23 +124,32 @@
 
 extern crate byteorder;
 
-use self::byteorder::BigEndian; // big-endian chosen arbitrarily because I'm Good At Computers
-use self::byteorder::ReadBytesExt;
+use self::byteorder::{ByteOrder, BigEndian, ReadBytesExt, WriteBytesExt};
 
 use std::error::Error;
 use std::io::Read;
+use std::fmt;
 use std::char;
 
 use super::slist::List;
-use super::SVMCell;
+use super::slist::List::*;
+use super::{SVMCell,Atom,Inst};
 use super::SVMCell::*;
-use super::Atom;
+use super::Atom::*;
 use super::Inst::*;
-use super::Inst;
+
+#[cfg(test)]
+mod tests;
 
 /// block reserved for future opcodes
-const RESERVED_START: u8 = 0x1D;
-const RESERVED_LEN: u8   = 0x13;
+const RESERVED_START: u8 = 0x1E;
+const RESERVED_LEN: u8   = 0x12;
+/// block reserved for typetags
+const CONST_START: u8    = 0xC1;
+const CONST_LEN: u8      = 0x0E;
+/// important bytecodes
+const BYTE_CONS: u8      = 0xC0;
+const BYTE_NIL: u8       = 0x00;
 
 const VERSION: u16       = 0x0000;
 
@@ -152,7 +162,7 @@ pub struct Decoder<'a, R: 'a> {
 #[unstable(feature="decode")]
 fn decode_inst(byte: &u8) -> Result<Inst, String> {
     match *byte {
-        0x00 => Ok(NIL),
+        BYTE_NIL => Ok(NIL),
         0x01 => Ok(LD),
         0x02 => Ok(LDF),
         0x03 => Ok(AP),
@@ -178,13 +188,16 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
         0x17 => Ok(READC),
         0x18 => Ok(WRITEC),
         0x19 => Ok(CONS),
-        0x1A => Ok(CDR),
-        0x1B => Ok(CAR),
+        0x1A => Ok(CAR),
+        0x1B => Ok(CDR),
         0x1C => Ok(LDC),
-        b if b >= RESERVED_START && b <= (RESERVED_START + RESERVED_LEN) =>
-            Err(format!("Unimplemented: reserved byte {:?}", b)),
-        b if b > (RESERVED_START + RESERVED_LEN) => Err(String::from("byte too high")),
-        _  => panic!("Got a byte that was weird") // Should require an act of God.
+        0x1D => Ok(STOP),
+        b if b >= RESERVED_START && 
+             b <= (RESERVED_START + RESERVED_LEN) =>
+            Err(format!("Unimplemented: reserved byte {:#X}", b)),
+        b if b > (RESERVED_START + RESERVED_LEN) => 
+            Err(String::from("byte too high")),
+        _  => unreachable!() // Should require an act of God.
     }
 }
 
@@ -244,16 +257,32 @@ impl<'a, R> Decoder<'a, R> where R: Read {
             _ => unimplemented!()
         }
     }
-
+    // Decodes a CONS cell
+    #[unstable(feature="decode")]
     fn decode_cons(&mut self) -> Result<Option<Box<List<SVMCell>>>, String> {
-        let mut buf = [0;1];
-        match self.source.read(&mut buf) {
-            Ok(0)       => Err(String::from(
-                "Reached end of source unexpectedly while decoding cons cell")),
-            Ok(_)       => unimplemented!,
-            Err(why)    => Err(String::from(why.description()))
-        }
-
+        self.next_cell()
+            .and_then(|car|
+                car.ok_or(String::from("EOF while decoding CONS cell"))
+            )
+            // .map(|car| { println!("Decoded {:?}, {} bytes read", car, self.num_read); car })
+            .and_then(|car| {
+                let mut buf = [0;1];
+                try!(self.source.read(&mut buf) // try to get next byte
+                         .map_err(|why| String::from(why.description())));
+                self.num_read += 1;
+                match buf[0] {
+                    BYTE_CONS =>
+                        self.decode_cons()
+                            .and_then(|cdr| cdr.ok_or(
+                                String::from("EOF while decoding CONS")) )
+                            .map( |cdr| (car, cdr) ),
+                    BYTE_NIL  => Ok((car, box Nil)),
+                    b         => Err(
+                        format!("Unexpected byte {:#X} while decoding CONS", b)
+                    )
+                }
+            })
+            .map(|(car, cdr)| Some(box Cons(car, cdr)) )
     }
 
     /// Decodes the next cell in the source
@@ -263,20 +292,23 @@ impl<'a, R> Decoder<'a, R> where R: Read {
         match self.source.read(&mut buf) {
             Ok(1)   => { // a byte was read
                 self.num_read += 1;
+                // println!("Read {:#X}, {} bytes read", buf[0], self.num_read);
                 match buf[0] {
-                    b if b < 0x30               => decode_inst(&b)
-                                                       .map(SVMCell::InstCell)
-                                                       .map(Some),
-                    b if b > 0xC1 && b < 0xCF   => self.decode_const(&b)
-                                                       .map(SVMCell::AtomCell)
-                                                       .map(Some),
-                    0xC0                        => self.decode_cons()
-                                                       .map(|cell| cell.map(SVMCell::ListCell)),
-                    b                           => Err(format!("Unsupported byte {:?}", b))
+                    b if b < 0x30 => decode_inst(&b)
+                                        .map(SVMCell::InstCell)
+                                        .map(Some),
+                    b if b >= CONST_START &&
+                         b < (CONST_START + CONST_LEN) =>
+                                    self.decode_const(&b)
+                                        .map(SVMCell::AtomCell)
+                                        .map(Some),
+                    BYTE_CONS    => self.decode_cons()
+                                        .map(|cell| cell.map(SVMCell::ListCell)),
+                    b            => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
-            Ok(_)    => panic!("[next_cell] Read too many bytes! This shouldn't happen"),
+            Ok(_)    => unreachable!(), //
             Err(why) => Err(String::from(why.description()))
         }
     }
@@ -294,18 +326,120 @@ impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
             .unwrap()
     }
 }
+#[unstable(feature="decode")]
+impl<'a, R> fmt::Debug for Decoder<'a, R>  where R: fmt::Debug {
 
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Decoding from: {:?}, {} bytes read",
+            self.source,
+            self.num_read
+        )
+    }
+
+}
 
 #[unstable(feature="encode")]
 pub trait Encode {
     #[unstable(feature="encode")]
-    fn emit<'a>(self) -> &'a [u8];
+    fn emit(&self) -> Vec<u8>;
 }
 
 #[unstable(feature="encode")]
 impl Encode for SVMCell {
+    #[unstable(feature="encode")]
+    fn emit(&self) -> Vec<u8> {
+        match *self {
+            AtomCell(ref atom) => atom.emit(),
+            InstCell(ref inst) => inst.emit(),
+            ListCell(box ref list) => list.emit()
+        }
+    }
+}
 
-    fn emit<'a>(self) -> &'a [u8]{
-        unimplemented!()
+#[unstable(feature="encode")]
+impl Encode for Atom {
+    #[unstable(feature="encode")]
+    fn emit(&self) -> Vec<u8> {
+        match *self {
+            UInt(value) => {
+                let mut buf = vec![0xC1];
+                buf.write_u64::<BigEndian>(value)
+                   .unwrap();
+                buf
+            },
+            SInt(value) => {
+                let mut buf = vec![0xC2];
+                buf.write_i64::<BigEndian>(value)
+                   .unwrap();
+                buf
+            },
+            Char(value) => {
+                let mut buf = vec![0xC3];
+                buf.write_u32::<BigEndian>(value as u32)
+                   .unwrap();
+                buf
+            },
+            Float(value) => {
+                let mut buf = vec![0xC4];
+                buf.write_f64::<BigEndian>(value)
+                   .unwrap();
+                buf
+            }
+        }
+    }
+}
+
+#[unstable(feature="encode")]
+impl Encode for Inst {
+    #[unstable(feature="encode")]
+    fn emit(&self) -> Vec<u8> {
+        match *self {
+            NIL     => vec![BYTE_NIL],
+            LD      => vec![0x01],
+            LDF     => vec![0x02],
+            AP      => vec![0x03],
+            APCC    => vec![0x04],
+            JOIN    => vec![0x05],
+            RAP     => vec![0x06],
+            RET     => vec![0x07],
+            DUM     => vec![0x08],
+            SEL     => vec![0x09],
+            ADD     => vec![0x0A],
+            SUB     => vec![0x0B],
+            MUL     => vec![0x0C],
+            DIV     => vec![0x0D],
+            MOD     => vec![0x0E],
+            FDIV    => vec![0x0F],
+            EQ      => vec![0x10],
+            GT      => vec![0x11],
+            GTE     => vec![0x12],
+            LT      => vec![0x13],
+            LTE     => vec![0x14],
+            ATOM    => vec![0x15],
+            NULL    => vec![0x16],
+            READC   => vec![0x17],
+            WRITEC  => vec![0x18],
+            CONS    => vec![0x19],
+            CAR     => vec![0x1A],
+            CDR     => vec![0x1B],
+            LDC     => vec![0x1C],
+            STOP    => vec![0x1D]
+        }
+    }
+}
+
+#[unstable(feature="encode")]
+impl<T> Encode for List<T> where T: Encode + fmt::Debug {
+    #[unstable(feature="encode")]
+    fn emit(&self) -> Vec<u8> {
+        match *self {
+            Cons(ref it, box ref tail) => {
+                let mut result = vec![BYTE_CONS];
+                result.push_all(&it.emit());
+                result.push_all(&tail.emit());
+                result
+            },
+            Nil => vec![BYTE_NIL]
+        }
     }
 }
