@@ -132,7 +132,7 @@ use self::byteorder::{ByteOrder, BigEndian, ReadBytesExt, WriteBytesExt};
 
 use std::error::Error;
 use std::io::Read;
-use std::fmt::{Debug,Write};
+use std::fmt;
 use std::char;
 
 use super::slist::List;
@@ -260,8 +260,9 @@ impl<'a, R> Decoder<'a, R> where R: Read {
             .and_then(|car|
                 car.ok_or(String::from("EOF while decoding CONS cell"))
             )
+            // .map(|car| { println!("Decoded {:?}, {} bytes read", car, self.num_read); car })
             .and_then(|car| {
-                let mut buf = [0,1];
+                let mut buf = [0;1];
                 try!(self.source.read(&mut buf) // try to get next byte
                          .map_err(|why| String::from(why.description())));
                 self.num_read += 1;
@@ -287,6 +288,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
         match self.source.read(&mut buf) {
             Ok(1)   => { // a byte was read
                 self.num_read += 1;
+                // println!("Read {:#X}, {} bytes read", buf[0], self.num_read);
                 match buf[0] {
                     b if b < 0x30               => decode_inst(&b)
                                                        .map(SVMCell::InstCell)
@@ -300,7 +302,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
-            Ok(_)    => unreachable!(),
+            Ok(_)    => unreachable!(), //
             Err(why) => Err(String::from(why.description()))
         }
     }
@@ -317,6 +319,17 @@ impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
         self.next_cell()
             .unwrap()
     }
+}
+#[unstable(feature="decode")]
+impl<'a, R> fmt::Debug for Decoder<'a, R>  where R: fmt::Debug {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Decoding from: {:?}, {} bytes read",
+            self.source,
+            self.num_read
+        )
+    }
+
 }
 
 #[unstable(feature="encode")]
@@ -410,7 +423,7 @@ impl Encode for Inst {
 }
 
 #[unstable(feature="encode")]
-impl<T> Encode for List<T> where T: Encode + Debug {
+impl<T> Encode for List<T> where T: Encode + fmt::Debug {
     #[unstable(feature="encode")]
     fn emit(&self) -> Vec<u8> {
         match *self {
