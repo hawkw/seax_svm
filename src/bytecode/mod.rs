@@ -290,15 +290,16 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                 self.num_read += 1;
                 // println!("Read {:#X}, {} bytes read", buf[0], self.num_read);
                 match buf[0] {
-                    b if b < 0x30               => decode_inst(&b)
-                                                       .map(SVMCell::InstCell)
-                                                       .map(Some),
-                    b if b >= 0xC1 && b < 0xCE  => self.decode_const(&b)
-                                                       .map(SVMCell::AtomCell)
-                                                       .map(Some),
-                    0xC0                        => self.decode_cons()
-                                                       .map(|cell| cell.map(SVMCell::ListCell)),
-                    b                           => Err(format!("Unsupported byte {:#X}", b))
+                    b if b < 0x30 => decode_inst(&b)
+                                         .map(SVMCell::InstCell)
+                                         .map(Some),
+                    b if b >= 0xC1 &&
+                         b < 0xCE => self.decode_const(&b)
+                                         .map(SVMCell::AtomCell)
+                                         .map(Some),
+                    0xC0          => self.decode_cons()
+                                         .map(|cell| cell.map(SVMCell::ListCell)),
+                    b             => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
