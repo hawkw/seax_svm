@@ -1,8 +1,12 @@
 use super::{Encode,Decoder};
 use ::cell::{Atom,Inst,SVMCell};
+use ::cell::Atom::*;
+use ::cell::SVMCell::*;
+use ::Inst::*;
 use ::slist::List::{Cons,Nil};
 
 use std::io::Cursor;
+use std::fmt::Write;
 
 use quickcheck::quickcheck;
 
@@ -184,5 +188,94 @@ impl_encode_test!(
     SVMCell::ListCell(box list!(
         SVMCell::InstCell(Inst::LDC),
         SVMCell::AtomCell(Atom::SInt(1))
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the list creation
+    // program from the integration tests
+    test_encode_program_list_creation,
+    ListCell(box list!(
+        InstCell(NIL),
+        InstCell(LDC), AtomCell(SInt(20)), InstCell(CONS),
+        InstCell(LDC), AtomCell(SInt(10)), InstCell(CONS)
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the list CAR
+    // program from the integration tests
+    test_encode_program_car,
+    ListCell(box list!(
+        InstCell(NIL),
+        InstCell(LDC), AtomCell(SInt(10)), InstCell(CONS),
+        InstCell(LDC), AtomCell(SInt(20)), InstCell(CONS),
+        InstCell(CAR)
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the list CDR
+    // program from the integration tests
+    test_encode_program_cdr,
+    ListCell(box list!(
+        InstCell(NIL),
+        InstCell(LDC), AtomCell(SInt(10)), InstCell(CONS),
+        InstCell(LDC), AtomCell(SInt(20)), InstCell(CONS),
+        InstCell(CDR)
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the simple add
+    // program from the integration tests
+    test_encode_program_add,
+    ListCell(box list!(
+        InstCell(LDC), AtomCell(SInt(10)),
+        InstCell(LDC), AtomCell(SInt(10)),
+        InstCell(ADD)
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the nested arithmetic
+    // program from the integration tests
+    test_encode_program_nested_arith,
+    ListCell(box list!(
+        InstCell(LDC), AtomCell(SInt(5)),
+        InstCell(LDC), AtomCell(SInt(5)),
+        InstCell(ADD),
+        InstCell(LDC), AtomCell(SInt(20)),
+        InstCell(SUB)
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the first basic branching
+    // program from the integration tests
+    test_encode_program_basic_branching_1,
+    ListCell(box list!(
+        InstCell(LDC), AtomCell(SInt(1)), InstCell(LDC), AtomCell(SInt(1)),
+        InstCell(SUB),
+        InstCell(LDC), AtomCell(SInt(0)),
+        InstCell(EQ),
+        InstCell(SEL),
+            ListCell(box list!(InstCell(LDC), AtomCell(SInt(1)), InstCell(JOIN))),
+            ListCell(box list!(InstCell(NIL), InstCell(JOIN))
+        )
+    ))
+);
+
+impl_encode_test!(
+    // test for encode & decode of the second basic branching
+    // program from the integration tests
+    test_encode_program_basic_branching_2,
+    ListCell(box list!(
+        InstCell(NIL), InstCell(NULL),
+        InstCell(SEL),
+            ListCell(box list!(InstCell(LDC), AtomCell(SInt(10)), InstCell(JOIN))),
+            ListCell(box list!(InstCell(LDC), AtomCell(SInt(20)), InstCell(JOIN))),
+        InstCell(LDC), AtomCell(SInt(10)),
+        InstCell(ADD)
     ))
 );
