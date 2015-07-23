@@ -35,6 +35,8 @@ env:
 after_success:
   # measure code coverage and upload to coveralls.io
   - travis-cargo coveralls --no-sudo
+  # upload coverage to codecov.io
+  - bash <(curl https://codecov.io/bash) 
 
 before_deploy:
   # upload the documentation from the build
