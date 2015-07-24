@@ -6,7 +6,6 @@ use ::Inst::*;
 use ::slist::List::{Cons,Nil};
 
 use std::io::Cursor;
-use std::fmt::Write;
 
 use quickcheck::quickcheck;
 

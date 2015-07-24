@@ -153,13 +153,13 @@ const BYTE_NIL: u8       = 0x00;
 
 const VERSION: u16       = 0x0000;
 
-#[unstable(feature="decode")]
+#[stable(feature="decode", since="0.2.6")]
 pub struct Decoder<'a, R: 'a> {
     source: &'a mut R,
     num_read: usize
 }
 
-#[unstable(feature="decode")]
+#[stable(feature="decode", since="0.2.6")]
 fn decode_inst(byte: &u8) -> Result<Inst, String> {
     match *byte {
         BYTE_NIL => Ok(NIL),
@@ -192,20 +192,20 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
         0x1B => Ok(CDR),
         0x1C => Ok(LDC),
         0x1D => Ok(STOP),
-        b if b >= RESERVED_START && 
+        b if b >= RESERVED_START &&
              b <= (RESERVED_START + RESERVED_LEN) =>
             Err(format!("Unimplemented: reserved byte {:#X}", b)),
-        b if b > (RESERVED_START + RESERVED_LEN) => 
+        b if b > (RESERVED_START + RESERVED_LEN) =>
             Err(String::from("byte too high")),
         _  => unreachable!() // Should require an act of God.
     }
 }
 
 
-#[unstable(feature="decode")]
+#[stable(feature="decode", since="0.2.6")]
 impl<'a, R> Decoder<'a, R> where R: Read {
 
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     pub fn new(src: &'a mut R) -> Decoder<'a, R>{
         Decoder {
             source: src,
@@ -214,12 +214,12 @@ impl<'a, R> Decoder<'a, R> where R: Read {
     }
 
     /// Returns the number of bytes read by the decoder
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     pub fn num_read(&self) -> usize {
         self.num_read
     }
 
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     fn decode_const(&mut self, byte: &u8) -> Result<Atom, String> {
         match *byte & 0x0F { // extract the type tag
             1 => {
@@ -258,13 +258,16 @@ impl<'a, R> Decoder<'a, R> where R: Read {
         }
     }
     // Decodes a CONS cell
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     fn decode_cons(&mut self) -> Result<Option<Box<List<SVMCell>>>, String> {
         self.next_cell()
             .and_then(|car|
                 car.ok_or(String::from("EOF while decoding CONS cell"))
             )
-            // .map(|car| { println!("Decoded {:?}, {} bytes read", car, self.num_read); car })
+            .map(|car| {
+                debug!("Decoded {:?}, {} bytes read", car, self.num_read);
+                car
+            })
             .and_then(|car| {
                 let mut buf = [0;1];
                 try!(self.source.read(&mut buf) // try to get next byte
@@ -286,13 +289,13 @@ impl<'a, R> Decoder<'a, R> where R: Read {
     }
 
     /// Decodes the next cell in the source
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     pub fn next_cell(&mut self) -> Result<Option<SVMCell>,String> {
         let mut buf = [0;1];
         match self.source.read(&mut buf) {
             Ok(1)   => { // a byte was read
                 self.num_read += 1;
-                // println!("Read {:#X}, {} bytes read", buf[0], self.num_read);
+                debug!("Read {:#X}, {} bytes read", buf[0], self.num_read);
                 match buf[0] {
                     b if b < 0x30 => decode_inst(&b)
                                         .map(SVMCell::InstCell)
@@ -303,7 +306,9 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                                         .map(SVMCell::AtomCell)
                                         .map(Some),
                     BYTE_CONS    => self.decode_cons()
-                                        .map(|cell| cell.map(SVMCell::ListCell)),
+                                        .map(|cell|
+                                              cell.map(SVMCell::ListCell)
+                                        ),
                     b            => Err(format!("Unsupported byte {:#X}", b))
                 }
             },
@@ -315,20 +320,20 @@ impl<'a, R> Decoder<'a, R> where R: Read {
 
 }
 
-#[unstable(feature="decode")]
+#[stable(feature="decode", since="0.2.6")]
 impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     type Item = SVMCell;
 
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.2.6")]
     fn next(&mut self) -> Option<SVMCell> {
         self.next_cell()
             .unwrap()
     }
 }
-#[unstable(feature="decode")]
+#[stable(feature="decode", since="0.2.6")]
 impl<'a, R> fmt::Debug for Decoder<'a, R>  where R: fmt::Debug {
-
+    #[stable(feature="decode", since="0.2.6")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Decoding from: {:?}, {} bytes read",
             self.source,
@@ -338,15 +343,15 @@ impl<'a, R> fmt::Debug for Decoder<'a, R>  where R: fmt::Debug {
 
 }
 
-#[unstable(feature="encode")]
+#[stable(feature="encode", since="0.2.6")]
 pub trait Encode {
-    #[unstable(feature="encode")]
+    #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8>;
 }
 
-#[unstable(feature="encode")]
+#[stable(feature="encode", since="0.2.6")]
 impl Encode for SVMCell {
-    #[unstable(feature="encode")]
+    #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
             AtomCell(ref atom) => atom.emit(),
@@ -356,9 +361,9 @@ impl Encode for SVMCell {
     }
 }
 
-#[unstable(feature="encode")]
+#[stable(feature="encode", since="0.2.6")]
 impl Encode for Atom {
-    #[unstable(feature="encode")]
+    #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
             UInt(value) => {
@@ -389,9 +394,9 @@ impl Encode for Atom {
     }
 }
 
-#[unstable(feature="encode")]
+#[stable(feature="encode", since="0.2.6")]
 impl Encode for Inst {
-    #[unstable(feature="encode")]
+    #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
             NIL     => vec![BYTE_NIL],
@@ -428,9 +433,9 @@ impl Encode for Inst {
     }
 }
 
-#[unstable(feature="encode")]
-impl<T> Encode for List<T> where T: Encode + fmt::Debug {
-    #[unstable(feature="encode")]
+#[stable(feature="encode", since="0.2.6")]
+impl<T> Encode for List<T> where T: Encode {
+    #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
             Cons(ref it, box ref tail) => {
