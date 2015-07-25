@@ -208,14 +208,15 @@ impl<'a, R> Decoder<'a, R>
 {
     #[unstable(feature="decode")]
     pub fn check_ident_bytes(&mut self) -> Result<(), String> {
-        let mut buf = [0x00; 2];
-        self.source.read(&mut buf)
-            .and_then(|_| {
+        self.source
+            .read_u16::<BigEndian>()
+            .map_err(|why| String::from(why.description()))
+            .and_then(|ident| {
                 self.num_read += 2;
-                match &buf {
-                    &[0x5E, 0xCD] => Ok(()),
-                    &[b1, b2]     => Err(
-                        format!("invalid identifying bytes {:#X} {:#X}",b1,b2)
+                match ident {
+                    0x5ECD => Ok(()),
+                    bytes  => Err(
+                        format!("invalid identifying bytes {:#X}", bytes)
                     )
                 }
             })
@@ -223,11 +224,24 @@ impl<'a, R> Decoder<'a, R>
 
     #[unstable(feature="decode")]
     pub fn check_version(&mut self) -> Result<(), String> {
-        unimplemented!()
+        self.source
+            .read_u16::<BigEndian>()
+            .map_err(|why| String::from(why.description()))
+            .and_then(|version| {
+                self.num_read += 2;
+                match version {
+                    VERSION => Ok(()),
+                    bytes   => Err( // I expect this will generate a warning
+                                    // at the call site...
+                        format!("mismatched version {}, expected {}",
+                            bytes, version)
+                    )
+                }
+            })
     }
 
     #[stable(feature="decode", since="0.2.6")]
-    pub fn new(src: &'a mut R) -> Decoder<'a, R>{
+    pub fn new(src: &'a mut R) -> Decoder<'a, R> {
         Decoder {
             source: src,
             num_read: 0
