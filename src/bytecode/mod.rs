@@ -203,7 +203,28 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
 
 
 #[stable(feature="decode", since="0.2.6")]
-impl<'a, R> Decoder<'a, R> where R: Read {
+impl<'a, R> Decoder<'a, R>
+    where R: Read
+{
+    #[unstable(feature="decode")]
+    pub fn check_ident_bytes(&mut self) -> Result<(), String> {
+        let mut buf = [0x00; 2];
+        self.source.read(&mut buf)
+            .and_then(|_| {
+                self.num_read += 2;
+                match &buf {
+                    &[0x5E, 0xCD] => Ok(()),
+                    &[b1, b2]     => Err(
+                        format!("invalid identifying bytes {:#X} {:#X}",b1,b2)
+                    )
+                }
+            })
+    }
+
+    #[unstable(feature="decode")]
+    pub fn check_version(&mut self) -> Result<(), String> {
+        unimplemented!()
+    }
 
     #[stable(feature="decode", since="0.2.6")]
     pub fn new(src: &'a mut R) -> Decoder<'a, R>{
