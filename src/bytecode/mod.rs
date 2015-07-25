@@ -142,7 +142,9 @@ use super::Inst::*;
 mod tests;
 
 /// exported constants
+#[stable(feature="decode", since="0.3.0")]
 pub const IDENT_BYTES: u16 = 0x5ECD;
+#[stable(feature="decode", since="0.3.0")]
 pub const VERSION: u16     = 0x0000;
 
 /// block reserved for future opcodes
@@ -208,7 +210,7 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
 impl<'a, R> Decoder<'a, R>
     where R: Read
 {
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.3.0")]
     pub fn check_ident_bytes(&mut self) -> Result<(), String> {
         self.source
             .read_u16::<BigEndian>()
@@ -224,7 +226,7 @@ impl<'a, R> Decoder<'a, R>
             })
     }
 
-    #[unstable(feature="decode")]
+    #[stable(feature="decode", since="0.3.0")]
     pub fn check_version(&mut self) -> Result<(), String> {
         self.source
             .read_u16::<BigEndian>()
