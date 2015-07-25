@@ -157,6 +157,22 @@ const CONST_LEN: u8       = 0x0E;
 const BYTE_CONS: u8       = 0xC0;
 const BYTE_NIL: u8        = 0x00;
 
+#[unstable(feature="decode")]
+pub fn decode_program<R>(source: R) -> Result<List<SVMCell>, String>
+    where R: Read
+{
+    let mut decoder: Decoder::new(source);
+    decoder
+        .check_ident_bytes()
+        .and_then(|| decoder.check_version()
+                            .or_else(|why| { warn!(why); Ok(()) })
+            )
+        .and_then(||
+            unimplemented!() // todo: build list from iterator in error-safe way
+            )
+
+}
+
 #[stable(feature="decode", since="0.2.6")]
 pub struct Decoder<'a, R: 'a> {
     source: &'a mut R,
