@@ -141,17 +141,19 @@ use super::Inst::*;
 #[cfg(test)]
 mod tests;
 
-/// block reserved for future opcodes
-const RESERVED_START: u8 = 0x1E;
-const RESERVED_LEN: u8   = 0x12;
-/// block reserved for typetags
-const CONST_START: u8    = 0xC1;
-const CONST_LEN: u8      = 0x0E;
-/// important bytecodes
-const BYTE_CONS: u8      = 0xC0;
-const BYTE_NIL: u8       = 0x00;
+/// exported constants
+pub const IDENT_BYTES: u16 = 0x5ECD;
+pub const VERSION: u16     = 0x0000;
 
-const VERSION: u16       = 0x0000;
+/// block reserved for future opcodes
+const RESERVED_START: u8  = 0x1E;
+const RESERVED_LEN: u8    = 0x12;
+/// block reserved for typetags
+const CONST_START: u8     = 0xC1;
+const CONST_LEN: u8       = 0x0E;
+/// important bytecodes
+const BYTE_CONS: u8       = 0xC0;
+const BYTE_NIL: u8        = 0x00;
 
 #[stable(feature="decode", since="0.2.6")]
 pub struct Decoder<'a, R: 'a> {
@@ -214,9 +216,9 @@ impl<'a, R> Decoder<'a, R>
             .and_then(|ident| {
                 self.num_read += 2;
                 match ident {
-                    0x5ECD => Ok(()),
-                    bytes  => Err(
-                        format!("invalid identifying bytes {:#X}", bytes)
+                    IDENT_BYTES => Ok(()),
+                    other_bytes => Err(
+                        format!("invalid identifying bytes {:#X}", other_bytes)
                     )
                 }
             })
