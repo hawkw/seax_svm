@@ -203,7 +203,7 @@ impl<'a, T> List<'a, T> {
     #[inline]
     #[stable(feature="list", since="0.1.0")]
     pub fn prepend(self, it: T) -> List<'a, T> {
-        Cons(it, box self)
+        Cons(it, &self)
     }
 
     /// Appends an item to the end of the list.
@@ -233,8 +233,8 @@ impl<'a, T> List<'a, T> {
     #[stable(feature="list", since="0.2.3")]
     pub fn append(&mut self, it: T) {
         match *self {
-            Cons(_, box ref mut tail) => tail.append(it),
-            Nil => *self = Cons(it, box Nil)
+            Cons(_, ref mut tail) => tail.append(it),
+            Nil => *self = Cons(it, &Nil)
         }
 
     }
@@ -276,8 +276,8 @@ impl<'a, T> List<'a, T> {
     #[stable(feature="list", since="0.2.3")]
     pub fn append_chain(&mut self, it: T) -> &mut List<'a, T> {
         match *self {
-            Cons(_, box ref mut tail) => tail.append_chain(it),
-            Nil => { *self = Cons(it, box Nil); self }
+            Cons(_, ref mut tail) => tail.append_chain(it),
+            Nil => { *self = Cons(it, &Nil); self }
         }
 
     }
@@ -326,8 +326,8 @@ impl<'a, T> List<'a, T> {
     #[stable(feature="list", since="0.1.0")]
     pub fn last(&self) -> &T {
         match *self {
-            Cons(ref car, box Nil) => &car,
-            Cons(_, ref cdr @ box Cons(_,_)) => cdr.last(),
+            Cons(ref car, &Nil) => &car,
+            Cons(_, ref cdr @ &Cons(_,_)) => cdr.last(),
             Nil => panic!("Last called on empty list")
         }
     }
@@ -369,7 +369,7 @@ impl<'a, T> List<'a, T> {
                 Nil => None
             },
             1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => Some(&cdr),
+                Cons(_, &Cons(ref cdr, _)) => Some(&cdr),
                 _ => None
             },
             i if i == self.length() as u64 => Some(self.last()),
@@ -439,7 +439,7 @@ impl<'a, T> FromIterator<T> for List<'a, T> {
     fn from_iter<I>(iterable: I) -> List<'a, T>
         where I: IntoIterator<Item=T>
     {
-        let mut result  = List::new();
+        let mut result = List::new();
         iterable
             .into_iter()
             .fold(&mut result, |l, it| l.append_chain(it));
@@ -496,9 +496,9 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
     /// ```
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    fn next(&mut self) -> Option<&'a T> {
+    fn next<'b>(&mut self) -> Option<&'b T> {
         match self.current {
-            &Cons(ref head, box ref tail) => {
+            &Cons(ref head, ref tail) => {
                 self.current = tail;
                 Some(head)
             },
@@ -533,15 +533,15 @@ impl<'a, T> Index<usize> for List<'a, T> {
 
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    fn index(&'a self, _index: usize) -> &'a T {
+    fn index(&self, _index: usize) -> &T {
         match _index {
             0usize => match *self {
                 Cons(ref car, _) => car,
                 Nil => panic!("List index {} out of range", _index)
             },
             1usize => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
+                Cons(_, &Cons(ref cdr, _)) => cdr,
+                Cons(_, &Nil) => panic!("List index {} out of range", _index),
                 Nil => panic!("List index {} out of range", _index)
             },
             i if i == self.length() => self.last(),
@@ -578,15 +578,15 @@ impl<'a, T> Index<u64> for List<'a, T> {
 
     #[inline]
     #[stable(feature="list", since="0.3.0")]
-    fn index(&'a self, _index: u64) -> &'a T {
+    fn index(&self, _index: u64) -> &T {
         match _index {
             0 => match *self {
                 Cons(ref car, _) => car,
                 Nil => panic!("List index {} out of range", _index)
             },
             1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
+                Cons(_, &Cons(ref cdr, _)) => cdr,
+                Cons(_, &Nil) => panic!("List index {} out of range", _index),
                 Nil => panic!("List index {} out of range", _index)
             },
             i if i == self.length() as u64 => self.last(),
@@ -626,15 +626,15 @@ impl<'a, T> Index<i64> for List<'a, T> {
     #[inline]
     #[stable(feature="list", since="0.3.0")]
     #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
-    fn index(&'a self, _index: i64) -> &'a T {
+    fn index(&self, _index: i64) -> &T {
         match _index {
             0 => match *self {
                 Cons(ref car, _) => car,
                 Nil => panic!("List index {} out of range", _index)
             },
             1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
+                Cons(_, &Cons(ref cdr, _)) => cdr,
+                Cons(_, &Nil) => panic!("List index {} out of range", _index),
                 Nil => panic!("List index {} out of range", _index)
             },
             i if i == self.length() as i64 => self.last(),
@@ -673,15 +673,15 @@ impl<'a,T> Index<isize> for List<'a, T> {
     #[inline]
     #[stable(feature="list", since="0.1.0")]
     #[deprecated(since="0.2.5", reason="use unsigned indices instead")]
-    fn index(&'a self, _index: isize) -> &'a T {
+    fn index(&self, _index: isize) -> &T {
         match _index {
             0isize => match *self {
                 Cons(ref car, _) => car,
                 Nil => panic!("List index {} out of range", _index)
             },
             1isize => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
+                Cons(_, &Cons(ref cdr, _)) => cdr,
+                Cons(_, &Nil) => panic!("List index {} out of range", _index),
                 Nil => panic!("List index {} out of range", _index)
             },
             i if i == self.length() as isize => self.last(),
@@ -713,7 +713,7 @@ mod tests {
 
     #[test]
     fn test_list_to_string() {
-        let l: List<i32> = Cons(1, Box::new(Cons(2, Box::new(Cons(3, Box::new(Nil))))));
+        let l: List<i32> = Cons(1, &Cons(2, &Cons(3, &Nil)));
         assert_eq!(l.to_string(), "(1, 2, 3)");
     }
 
