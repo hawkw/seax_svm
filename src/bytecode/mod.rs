@@ -325,24 +325,24 @@ impl<'a, R> Decoder<'a, R>
                 debug!("Decoded {:?}, {} bytes read", car, self.num_read);
                 car
             })
-            .and_then(|car| {
+            .and_then(|ref car| {
                 let mut buf = [0;1];
                 try!(self.source.read(&mut buf) // try to get next byte
                          .map_err(|why| String::from(why.description())));
                 self.num_read += 1;
                 match buf[0] {
                     BYTE_CONS =>
-                        self.decode_cons()
+                        &self.decode_cons()
                             .and_then(|cdr| cdr.ok_or(
                                 String::from("EOF while decoding CONS")) )
-                            .map( |cdr| (car, cdr) ),
-                    BYTE_NIL  => Ok((car, Nil)),
+                            .map(|ref cdr| (car, cdr) ),
+                    BYTE_NIL  => Ok((car, &Nil)),
                     b         => Err(
                         format!("Unexpected byte {:#X} while decoding CONS", b)
                     )
                 }
             })
-            .map(|(car, cdr)| Some(&Cons(car, &cdr)) )
+            .map(|(car, ref cdr)| Some(Cons(car, cdr)) )
     }
 
     /// Decodes the next cell in the source
