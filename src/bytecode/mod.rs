@@ -161,7 +161,7 @@ const BYTE_NIL: u8        = 0x00;
 pub fn decode_program<R>(source: R) -> Result<List<SVMCell>, String>
     where R: Read
 {
-    let mut decoder: Decoder::new(source);
+    let mut decoder = Decoder::new(&mut source);
     decoder
         .check_ident_bytes()
         .and_then(|| decoder.check_version()
