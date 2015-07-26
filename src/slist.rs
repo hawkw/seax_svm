@@ -153,7 +153,7 @@ impl<'a, T> Stack<T> for List<'a, T> {
 // costs (as usual).
 #[derive(PartialEq,Clone)]
 #[stable(feature="list", since="0.1.0")]
-pub enum List<'a, T> {
+pub enum List<'a, T> where T: 'a {
     /// Cons cell containing a `T` and a link to the tail
     #[stable(feature="list", since="0.1.0")]
     Cons(T, &'a List<'a, T>),
