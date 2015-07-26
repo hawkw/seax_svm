@@ -22,9 +22,9 @@ use std::iter::{IntoIterator, FromIterator};
 #[macro_export]
 #[stable(feature="list", since="0.1.0")]
 macro_rules! list(
-    ( $e:expr, $($rest:expr),+ ) => ( Cons($e, Box::new(list!( $( $rest ),+ )) ));
-    ( $e:expr ) => ( Cons($e, Box::new(Nil)) );
-    () => ( Box::new(Nil) );
+    ( $e:expr, $($rest:expr),+ ) => ( Cons($e, &list!( $( $rest ),+ ) ));
+    ( $e:expr ) => ( Cons($e, &Nil) );
+    () =>  ( Nil );
 );
 
 /// Common functions for an immutable Stack abstract data type.
