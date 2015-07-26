@@ -71,7 +71,7 @@ impl<'a, T> Stack<T> for List<'a, T> {
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
     fn push(self, item: T) -> List<'a, T> {
-        Cons(item, box self)
+        Cons(item, &self)
     }
 
     /// Pop the top element of the stack.
@@ -407,7 +407,7 @@ impl<'a, T> fmt::Debug for List<'a, T>
     #[stable(feature="debug", since="0.2.5")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Cons(ref head, ref tail) => write!(f, "({:?} . {:?})", head, tail),
+            Cons(car, cdr) => write!(f, "({:?} . {:?})", car, cdr),
             Nil => write!(f,"nil")
         }
     }
@@ -498,9 +498,9 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
     #[stable(feature="list", since="0.1.0")]
     fn next<'b>(&mut self) -> Option<&'b T> {
         match self.current {
-            &Cons(ref head, ref tail) => {
-                self.current = tail;
-                Some(head)
+            &Cons(car, cdr) => {
+                self.current = cdr;
+                Some(&car)
             },
             &Nil => None
         }
