@@ -247,7 +247,7 @@ impl<'a, R> Decoder<'a, R>
     pub fn check_version(&mut self) -> Result<(), String> {
         self.source
             .read_u16::<BigEndian>()
-            .map_err(|why| String::from(why.description()))
+            .map_err( |why| String::from(why.description()))
             .and_then(|version| {
                 self.num_read += 2;
                 match version {
@@ -335,13 +335,13 @@ impl<'a, R> Decoder<'a, R>
                             .and_then(|cdr| cdr.ok_or(
                                 String::from("EOF while decoding CONS")) )
                             .map( |cdr| (car, cdr) ),
-                    BYTE_NIL  => Ok((car, box Nil)),
+                    BYTE_NIL  => Ok((car, Nil)),
                     b         => Err(
                         format!("Unexpected byte {:#X} while decoding CONS", b)
                     )
                 }
             })
-            .map(|(car, cdr)| Some(box Cons(car, cdr)) )
+            .map(|(car, cdr)| Some(&Cons(car, &cdr)) )
     }
 
     /// Decodes the next cell in the source
@@ -362,8 +362,9 @@ impl<'a, R> Decoder<'a, R>
                                         .map(SVMCell::AtomCell)
                                         .map(Some),
                     BYTE_CONS    => self.decode_cons()
-                                        .map(|cell|
-                                              cell.map(SVMCell::ListCell)
+                                        .map(|cell| cell.map( |ref c|
+                                                SVMCell::ListCell(c)
+                                            )
                                         ),
                     b            => Err(format!("Unsupported byte {:#X}", b))
                 }
@@ -382,7 +383,7 @@ impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
     type Item = SVMCell<'a>;
 
     #[stable(feature="decode", since="0.2.6")]
-    fn next(&mut self) -> Option<SVMCell> {
+    fn next(&mut self) -> Option<SVMCell<'a>> {
         self.next_cell()
             .unwrap()
     }
@@ -494,9 +495,9 @@ impl<'a, T> Encode for List<'a, T> where T: Encode {
     #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
-            Cons(ref it, box ref tail) => {
+            Cons(head, tail) => {
                 let mut result = vec![BYTE_CONS];
-                result.push_all(&it.emit());
+                result.push_all(&head.emit());
                 result.push_all(&tail.emit());
                 result
             },
