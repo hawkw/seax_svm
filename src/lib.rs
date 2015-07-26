@@ -45,6 +45,7 @@ pub use self::slist::{List, Stack};
 pub use self::slist::List::{Cons,Nil};
 pub use self::cell::{SVMCell,Atom,Inst};
 
+use self::cell::CellList;
 use self::cell::SVMCell::*;
 use self::cell::Atom::*;
 use self::cell::Inst::*;
@@ -52,11 +53,11 @@ use self::cell::Inst::*;
 /// Represents a SVM machine state
 #[derive(PartialEq,Clone,Debug)]
 #[stable(feature="vm_core", since="0.1.0")]
-pub struct State {
-    stack:  List<SVMCell>,
-    env:    List<SVMCell>,
-    control:List<SVMCell>,
-    dump:   List<SVMCell>
+pub struct State<'a> {
+    stack:  CellList<'a>,
+    env:    CellList<'a>,
+    control:CellList<'a>,
+    dump:   CellList<'a>
 }
 
 /// A VM state's IO action
@@ -75,14 +76,14 @@ pub enum IOEvent {
 }
 
 #[unstable(feature="eval")]
-pub type EvalResult = Result<(State,Option<IOEvent>), String>;
+pub type EvalResult<'a> = Result<(State<'a>,Option<IOEvent>), String>;
 
 #[stable(feature="vm_core", since="0.1.0")]
-impl State {
+impl<'a> State<'a> {
 
     /// Creates a new empty state
     #[stable(feature="vm_core", since="0.1.0")]
-    pub fn new() -> State {
+    pub fn new() -> State<'a> {
         State {
             stack: Stack::empty(),
             env: Stack::empty(),
@@ -122,8 +123,8 @@ impl State {
     #[stable(feature="vm_core", since="0.3.0")]
     pub fn eval(self,
                 input: Option<u8>,
-                debug: bool)
-                -> EvalResult {
+                debug: bool
+                ) -> EvalResult<'a> {
         debug!("[eval]: Evaluating {:?}", self.control);
         // TODO: this (by which I mean "the whole caching deal") could likely be made
         // better and/or faster with some clever (mis?)use of RefCell; look into that.
@@ -747,9 +748,9 @@ impl State {
 /// Evaluates a program (control stack) and returns the final state.
 /// TODO: add (optional?) parameters for stdin and stdout
 #[stable(feature="vm_core",since="0.2.0")]
-pub fn eval_program(program: List<SVMCell>,
-                    debug: bool)
-    -> Result<List<SVMCell>,String> {
+pub fn eval_program<'a>(program: CellList<'a>,
+                        debug: bool
+                        ) -> Result<CellList<'a>,String> {
     debug!("evaluating {:?}", program);
     let mut machine = State {
         stack:      Stack::empty(),
