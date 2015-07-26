@@ -451,7 +451,7 @@ impl<'a, T> FromIterator<T> for List<'a, T> {
 /// Wraps a List<T> to allow it to be used as an Iterator<T>
 #[stable(feature="list", since="0.1.0")]
 pub struct ListIterator<'a, T:'a> {
-    current: &'a List<T>
+    current: &'a List<'a, T>
 }
 
 /// Implementation of Iterator for List. This allows iteration by
