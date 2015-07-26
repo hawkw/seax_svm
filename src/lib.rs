@@ -133,7 +133,7 @@ impl<'a> State<'a> {
         match self.control.pop().unwrap() {
             // NIL: pop an empty list onto the stack
             (InstCell(NIL), new_control) => Ok((State {
-                stack: self.stack.push(ListCell(box List::new())),
+                stack: self.stack.push(ListCell(&List::new())),
                 env: self.env,
                 control: new_control,
                 dump: self.dump
@@ -238,10 +238,10 @@ impl<'a> State<'a> {
                         control: new_control,
                         dump: new_dump
                     }, None)),
-                    ListCell(ref it)  => Ok((State {
+                    ListCell(it)  => Ok((State {
                         stack: self.stack,
                         env: self.env,
-                        control: it,
+                        control: *it,
                         dump: new_dump
                     }, None)),
                     anything          => Err(format!(
@@ -494,7 +494,7 @@ impl<'a> State<'a> {
                 },None))
             },
             (InstCell(AP), new_control) => match self.stack.pop().unwrap() {
-                (ListCell(&Cons(ListCell(ref func), &Cons(ListCell(ref params), &Nil))), new_stack) => {
+                (ListCell(&Cons(ListCell(func), &Cons(ListCell(params), &Nil))), new_stack) => {
                         match new_stack.pop() {
                             Some((v, newer_stack)) => Ok((State {
                                 stack: Stack::empty(),
@@ -502,25 +502,12 @@ impl<'a> State<'a> {
                                     ListCell(_) => params.push(v),
                                     _           => params.push(ListCell(&list!(v)))
                                 },
-                                control: func,
+                                control: *func,
                                 dump: self.dump
                                     .push(ListCell(&newer_stack))
                                     .push(ListCell(&self.env))
                                     .push(ListCell(&new_control))
-                            }, None)),/*
-                            Some((v @ AtomCell(_), newer_stack)) => State {
-                                stack: Stack::empty(),
-                                env: list!( params,ListCell(box list!(v)) ),
-                                control: func,
-                                dump: self.dump
-                                    .push(ListCell(box newer_stack))
-                                    .push(ListCell(box self.env))
-                                    .push(ListCell(box new_control))
-                            },
-                            Some((thing, _)) => panic!(
-                                "[fatal][AP]: Expected closure on stack, got:\n[fatal]\t{:?}\n{}",
-                                thing,
-                                prev.map_or(String::new(), |x| x.dump_state("fatal") )),*/
+                            }, None)),
                             None => Err(format!(
                                 "[fatal][AP]: expected non-empty stack\n{}",
                                 prev.map_or(String::new(), |x| x.dump_state("fatal") )) )
@@ -531,12 +518,12 @@ impl<'a> State<'a> {
                     thing, prev.map_or(String::new(), |x| x.dump_state("fatal") )) )
             },
             (InstCell(RAP), new_control) => match self.stack.pop().unwrap() {
-                (ListCell(&Cons(ListCell(ref func), &Cons(ListCell(ref params), &Nil))), new_stack) => {
+                (ListCell(&Cons(ListCell(func), &Cons(ListCell(params), &Nil))), new_stack) => {
                     match new_stack.pop() {
                         Some((v @ ListCell(_), newer_stack)) => Ok(( State {
                             stack: Stack::empty(),
                             env: params.push(v),
-                            control: func,
+                            control: *func,
                             dump: self.dump
                                     .push(ListCell(&new_control))
                                     .push(ListCell(&self.env.pop().unwrap().1))
@@ -587,22 +574,22 @@ impl<'a> State<'a> {
                 dump: self.dump
             }, None)),
             (InstCell(SEL), new_control) => match new_control.pop() {
-                Some((ListCell(ref true_case), newer_control)) => {
+                Some((ListCell(true_case), newer_control)) => {
                     match newer_control.pop() {
-                        Some((ListCell(ref false_case), newest_control)) => {
+                        Some((ListCell(false_case), newest_control)) => {
                             match self.stack.pop() {
                                 // False case
                                 Some((ListCell(&Nil), new_stack)) => Ok((State {
                                     stack: new_stack,
                                     env: self.env,
-                                    control: false_case,
+                                    control: *false_case,
                                     dump: self.dump.push(ListCell(&newest_control))
                                 }, None)),
                                 // True case
                                 Some((_, new_stack)) => Ok((State {
                                     stack: new_stack,
                                     env: self.env,
-                                    control: true_case,
+                                    control: *true_case,
                                     dump: self.dump.push(ListCell(&newest_control))
                                 }, None)),
                                 None => Err(format!(
