@@ -7,13 +7,16 @@ use std::ops;
 use std::fmt;
 use std::fmt::{Debug,Display};
 
+#[unstable(feature="vm_core")]
+pub type CellList<'a> = List<'a, SVMCell<'a>>;
+
 #[derive(PartialEq,Clone,Debug)]
 #[stable(feature="vm_core", since="0.1.0")]
 pub enum SVMCell<'a> {
     #[stable(feature="vm_core", since="0.1.0")]
     AtomCell(Atom),
     #[stable(feature="vm_core", since="0.1.0")]
-    ListCell(List<'a, SVMCell<'a>>),
+    ListCell(CellList<'a>),
     #[stable(feature="vm_core", since="0.1.0")]
     InstCell(Inst)
 }
