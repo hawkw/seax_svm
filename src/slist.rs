@@ -15,7 +15,7 @@ use std::iter::{IntoIterator, FromIterator};
 /// # fn main () {
 /// assert_eq!(
 ///     list!(1i32, 2i32, 3i32),
-///     Cons(1i32, Box::new(Cons(2i32, Box::new(Cons(3i32, Box::new(Nil))))))
+///     Cons(1i32, &Cons(2i32, &Cons(3i32, &Nil)))
 ///     );
 /// # }
 /// ```
