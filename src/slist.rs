@@ -53,7 +53,7 @@ pub trait Stack<T> {
 }
 
 /// Stack implementation using a `cons` list
-impl<T> Stack<T> for List<T> {
+impl<'a, T> Stack<T> for List<'a, T> {
 
     /// Push an item to the top of the stack, returning a new stack.
     ///
@@ -70,7 +70,7 @@ impl<T> Stack<T> for List<T> {
     /// ```
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn push(self, item: T) -> List<T> {
+    fn push(self, item: T) -> List<'a, T> {
         Cons(item, box self)
     }
 
@@ -95,7 +95,7 @@ impl<T> Stack<T> for List<T> {
     /// ```
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn pop(self) -> Option<(T,List<T>)> {
+    fn pop(self) -> Option<(T,List<'a, T>)> {
         match self {
             Cons(item, new_self)    => Some((item, *new_self)),
             Nil                     => None
@@ -104,7 +104,7 @@ impl<T> Stack<T> for List<T> {
 
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn empty() -> List<T> {
+    fn empty() -> List<'a, T> {
         Nil
     }
 
@@ -153,10 +153,10 @@ impl<T> Stack<T> for List<T> {
 // costs (as usual).
 #[derive(PartialEq,Clone)]
 #[stable(feature="list", since="0.1.0")]
-pub enum List<T> {
+pub enum List<'a, T> {
     /// Cons cell containing a `T` and a link to the tail
     #[stable(feature="list", since="0.1.0")]
-    Cons(T, Box<List<T>>),
+    Cons(T, &'a List<'a, T>),
     /// The empty list.
     #[stable(feature="list", since="0.1.0")]
     Nil,
@@ -164,13 +164,13 @@ pub enum List<T> {
 
 /// Public implementation for List.
 #[stable(feature="list", since="0.1.0")]
-impl<T> List<T> {
+impl<'a, T> List<'a, T> {
 
 
     /// Creates a new empty list
     #[stable(feature="list", since="0.1.0")]
     #[inline]
-    pub fn new() -> List<T> {
+    pub fn new() -> List<'a, T> {
         Nil
     }
 
@@ -202,7 +202,7 @@ impl<T> List<T> {
     /// ```
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    pub fn prepend(self, it: T) -> List<T> {
+    pub fn prepend(self, it: T) -> List<'a, T> {
         Cons(it, box self)
     }
 
@@ -274,7 +274,7 @@ impl<T> List<T> {
     /// # }
     #[inline]
     #[stable(feature="list", since="0.2.3")]
-    pub fn append_chain(&mut self, it: T) -> &mut List<T> {
+    pub fn append_chain(&mut self, it: T) -> &mut List<'a, T> {
         match *self {
             Cons(_, box ref mut tail) => tail.append_chain(it),
             Nil => { *self = Cons(it, box Nil); self }
@@ -306,7 +306,7 @@ impl<T> List<T> {
     /// Provide a forward iterator
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    pub fn iter<'a>(&'a self) -> ListIterator<'a, T> {
+    pub fn iter<'b>(&'b self) -> ListIterator<'b, T> {
         ListIterator{current: self}
     }
 
@@ -362,7 +362,7 @@ impl<T> List<T> {
     /// # }
     /// ```
     #[stable(feature="list",since="0.3.0")]
-    pub fn get<'a>(&'a self, index: u64) -> Option<&'a T> {
+    pub fn get(&'a self, index: u64) -> Option<&'a T> {
         match index {
             0 => match *self {
                 Cons(ref car, _) => Some(&car),
@@ -387,7 +387,9 @@ impl<T> List<T> {
 }
 
 #[stable(feature="list", since="0.2.5")]
-impl<'a, T> fmt::Display for List<T> where T: fmt::Display{
+impl<'a, T> fmt::Display for List<'a, T>
+    where T: fmt::Display
+{
     #[stable(feature="list", since="0.2.5")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut it = self.iter();
@@ -399,7 +401,9 @@ impl<'a, T> fmt::Display for List<T> where T: fmt::Display{
 }
 
 #[stable(feature="list", since="0.2.5")]
-impl<'a, T> fmt::Debug for List<T> where T: fmt::Debug {
+impl<'a, T> fmt::Debug for List<'a, T>
+    where T: fmt::Debug
+{
     #[stable(feature="debug", since="0.2.5")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -412,7 +416,7 @@ impl<'a, T> fmt::Debug for List<T> where T: fmt::Debug {
 
 
 #[stable(feature="list", since="0.2.3")]
-impl<T> FromIterator<T> for List<T> {
+impl<'a, T> FromIterator<T> for List<'a, T> {
     /// Build a `List<T>` from a structure implementing `IntoIterator<T>`.
     ///
     /// This takes advantage of the `List.append_chain()` method under the
@@ -432,12 +436,14 @@ impl<T> FromIterator<T> for List<T> {
     /// ```
     #[inline]
     #[stable(feature="list", since="0.2.3")]
-    fn from_iter<I>(iterable: I) -> List<T> where I: IntoIterator<Item=T> {
-            let mut result  = List::new();
-            iterable
-                .into_iter()
-                .fold(&mut result, |l, it| l.append_chain(it));
-            result
+    fn from_iter<I>(iterable: I) -> List<'a, T>
+        where I: IntoIterator<Item=T>
+    {
+        let mut result  = List::new();
+        iterable
+            .into_iter()
+            .fold(&mut result, |l, it| l.append_chain(it));
+        result
     }
 
 }
@@ -492,7 +498,10 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
     #[stable(feature="list", since="0.1.0")]
     fn next(&mut self) -> Option<&'a T> {
         match self.current {
-            &Cons(ref head, box ref tail) => { self.current = tail; Some(head) },
+            &Cons(ref head, box ref tail) => {
+                self.current = tail;
+                Some(head)
+            },
             &Nil => None
         }
     }
@@ -518,13 +527,13 @@ impl<'a, T> ExactSizeIterator for ListIterator<'a, T> {
 /// # }
 /// ```
 #[stable(feature="list", since="0.1.0")]
-impl<T> Index<usize> for List<T> {
+impl<'a, T> Index<usize> for List<'a, T> {
     #[stable(feature="list", since="0.1.0")]
     type Output = T;
 
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    fn index<'a>(&'a self, _index: usize) -> &'a T {
+    fn index(&'a self, _index: usize) -> &'a T {
         match _index {
             0usize => match *self {
                 Cons(ref car, _) => car,
@@ -563,13 +572,13 @@ impl<T> Index<usize> for List<T> {
 /// # }
 /// ```
 #[stable(feature="list", since="0.3.0")]
-impl<T> Index<u64> for List<T> {
+impl<'a, T> Index<u64> for List<'a, T> {
     #[stable(feature="list", since="0.3.0")]
     type Output = T;
 
     #[inline]
     #[stable(feature="list", since="0.3.0")]
-    fn index<'a>(&'a self, _index: u64) -> &'a T {
+    fn index(&'a self, _index: u64) -> &'a T {
         match _index {
             0 => match *self {
                 Cons(ref car, _) => car,
@@ -609,7 +618,7 @@ impl<T> Index<u64> for List<T> {
 /// ```
 #[stable(feature="list", since="0.3.0")]
 #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
-impl<T> Index<i64> for List<T> {
+impl<'a, T> Index<i64> for List<'a, T> {
     #[stable(feature="list", since="0.3.0")]
     #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
     type Output = T;
@@ -617,7 +626,7 @@ impl<T> Index<i64> for List<T> {
     #[inline]
     #[stable(feature="list", since="0.3.0")]
     #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
-    fn index<'a>(&'a self, _index: i64) -> &'a T {
+    fn index(&'a self, _index: i64) -> &'a T {
         match _index {
             0 => match *self {
                 Cons(ref car, _) => car,
@@ -654,9 +663,9 @@ impl<T> Index<i64> for List<T> {
 /// assert_eq!(list[0isize], 1);
 /// # }
 /// ```
-    #[stable(feature="list", since="0.1.0")]
+#[stable(feature="list", since="0.1.0")]
 #[deprecated(since="0.2.5", reason="use unsigned indices instead")]
-impl<T> Index<isize> for List<T> {
+impl<'a,T> Index<isize> for List<'a, T> {
     #[stable(feature="list", since="0.1.0")]
     #[deprecated(since="0.2.5", reason="use unsigned indices instead")]
     type Output = T;
@@ -664,7 +673,7 @@ impl<T> Index<isize> for List<T> {
     #[inline]
     #[stable(feature="list", since="0.1.0")]
     #[deprecated(since="0.2.5", reason="use unsigned indices instead")]
-    fn index<'a>(&'a self, _index: isize) -> &'a T {
+    fn index(&'a self, _index: isize) -> &'a T {
         match _index {
             0isize => match *self {
                 Cons(ref car, _) => car,
