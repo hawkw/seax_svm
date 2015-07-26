@@ -133,6 +133,7 @@ use std::char;
 
 use super::slist::List;
 use super::slist::List::*;
+use super::cell::CellList;
 use super::{SVMCell,Atom,Inst};
 use super::SVMCell::*;
 use super::Atom::*;
@@ -158,7 +159,7 @@ const BYTE_CONS: u8       = 0xC0;
 const BYTE_NIL: u8        = 0x00;
 
 #[unstable(feature="decode")]
-pub fn decode_program<R>(source: R) -> Result<List<SVMCell>, String>
+pub fn decode_program<'a, R>(source: R) -> Result<CellList<'a>, String>
     where R: Read
 {
     let mut decoder = Decoder::new(&mut source);
@@ -314,7 +315,7 @@ impl<'a, R> Decoder<'a, R>
     }
     // Decodes a CONS cell
     #[stable(feature="decode", since="0.2.6")]
-    fn decode_cons(&mut self) -> Result<Option<Box<List<SVMCell>>>, String> {
+    fn decode_cons<'b>(&mut self) -> Result<Option<CellList<'b>>, String> {
         self.next_cell()
             .and_then(|car|
                 car.ok_or(String::from("EOF while decoding CONS cell"))
@@ -345,7 +346,7 @@ impl<'a, R> Decoder<'a, R>
 
     /// Decodes the next cell in the source
     #[stable(feature="decode", since="0.2.6")]
-    pub fn next_cell(&mut self) -> Result<Option<SVMCell>,String> {
+    pub fn next_cell<'b>(&mut self) -> Result<Option<SVMCell<'b>>,String> {
         let mut buf = [0;1];
         match self.source.read(&mut buf) {
             Ok(1)   => { // a byte was read
@@ -378,7 +379,7 @@ impl<'a, R> Decoder<'a, R>
 #[stable(feature="decode", since="0.2.6")]
 impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
     #[stable(feature="decode", since="0.2.6")]
-    type Item = SVMCell;
+    type Item = SVMCell<'a>;
 
     #[stable(feature="decode", since="0.2.6")]
     fn next(&mut self) -> Option<SVMCell> {
@@ -405,13 +406,13 @@ pub trait Encode {
 }
 
 #[stable(feature="encode", since="0.2.6")]
-impl Encode for SVMCell {
+impl<'a> Encode for SVMCell<'a> {
     #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
             AtomCell(ref atom) => atom.emit(),
             InstCell(ref inst) => inst.emit(),
-            ListCell(box ref list) => list.emit()
+            ListCell(ref list) => list.emit()
         }
     }
 }
@@ -489,7 +490,7 @@ impl Encode for Inst {
 }
 
 #[stable(feature="encode", since="0.2.6")]
-impl<T> Encode for List<T> where T: Encode {
+impl<'a, T> Encode for List<'a, T> where T: Encode {
     #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
