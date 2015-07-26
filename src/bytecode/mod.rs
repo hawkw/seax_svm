@@ -162,15 +162,16 @@ const BYTE_NIL: u8        = 0x00;
 pub fn decode_program<'a, R>(source: R) -> Result<CellList<'a>, String>
     where R: Read
 {
-    let mut decoder = Decoder::new(&mut source);
-    decoder
-        .check_ident_bytes()
-        .and_then(|| decoder.check_version()
-                            .or_else(|why| { warn!("{}", why); Ok(()) })
-            )
-        .and_then(||
-            unimplemented!() // todo: build list from iterator in error-safe way
-            )
+    unimplemented!()
+    // let mut decoder = Decoder::new(&mut source);
+    // decoder
+    //     .check_ident_bytes()
+    //     .and_then(|| decoder.check_version()
+    //                         .or_else(|why| { warn!("{}", why); Ok(()) })
+    //         )
+    //     .and_then(||
+    //         unimplemented!() // todo: build list from iterator in error-safe way
+    //         )
 
 }
 
