@@ -16,7 +16,7 @@ pub enum SVMCell<'a> {
     #[stable(feature="vm_core", since="0.1.0")]
     AtomCell(Atom),
     #[stable(feature="vm_core", since="0.1.0")]
-    ListCell(CellList<'a>),
+    ListCell(&'a CellList<'a>),
     #[stable(feature="vm_core", since="0.1.0")]
     InstCell(Inst)
 }
