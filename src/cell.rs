@@ -3,37 +3,39 @@ pub use self::Atom::*;
 
 use ::slist::List;
 
-use std::{fmt,ops};
+use std::ops;
+use std::fmt;
+use std::fmt::{Debug,Display};
 
-#[derive(PartialEq,Clone)]
+#[derive(PartialEq,Clone,Debug)]
 #[stable(feature="vm_core", since="0.1.0")]
-pub enum SVMCell {
+pub enum SVMCell<'a> {
     #[stable(feature="vm_core", since="0.1.0")]
     AtomCell(Atom),
     #[stable(feature="vm_core", since="0.1.0")]
-    ListCell(Box<List<SVMCell>>),
+    ListCell(List<'a, SVMCell<'a>>),
     #[stable(feature="vm_core", since="0.1.0")]
     InstCell(Inst)
 }
 
 #[stable(feature="vm_core", since="0.1.0")]
-impl fmt::Display for SVMCell {
+impl<'a> fmt::Display for SVMCell<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self)
     }
 }
 
-#[stable(feature="debug", since="0.2.1")]
-impl fmt::Debug for SVMCell {
-    #[stable(feature="debug", since="0.2.1")]
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &AtomCell(atom) => write!(f, "{:?}", atom),
-            &ListCell(ref list) => write!(f, "{:?}", list),
-            &InstCell(inst) => write!(f, "{:?}", inst)
-        }
-    }
-}
+// #[stable(feature="debug", since="0.2.1")]
+// impl<'a> fmt::Debug for SVMCell<'a> {
+//     #[stable(feature="debug", since="0.2.1")]
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         match self {
+//             &AtomCell(atom) => write!(f, "{:?}", atom),
+//             &ListCell(ref list) => write!(f, "{:?}", list),
+//             &InstCell(inst) => write!(f, "{:?}", inst)
+//         }
+//     }
+// }
 
 /// SVM atom types.
 ///
@@ -55,7 +57,7 @@ pub enum Atom {
     Char(char)
 }
 #[stable(feature="vm_core", since="0.1.0")]
-impl fmt::Display for Atom {
+impl Display for Atom {
     #[stable(feature="vm_core", since="0.1.0")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -68,7 +70,7 @@ impl fmt::Display for Atom {
 }
 
 #[stable(feature="debug", since="0.2.1")]
-impl fmt::Debug for Atom {
+impl Debug for Atom {
     #[stable(feature="debug", since="0.2.1")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
