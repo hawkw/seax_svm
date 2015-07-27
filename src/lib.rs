@@ -3,15 +3,14 @@
 #![crate_type = "lib"]
 #![feature(vec_push_all)]
 #![feature(box_syntax,box_patterns)]
+#![feature(test)]
 #![feature(staged_api)]
 #![staged_api]
 
-#[cfg(test)]
-extern crate quickcheck;
+#[cfg(test)] extern crate quickcheck;
+#[cfg(test)] extern crate test;
 
-#[macro_use]
-extern crate log;
-
+#[macro_use] extern crate log;
 extern crate byteorder;
 
 /// Singly-linked list and stack implementations.
