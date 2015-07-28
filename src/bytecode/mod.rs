@@ -157,7 +157,7 @@ const CONST_LEN: u8       = 0x0E;
 const BYTE_CONS: u8       = 0xC0;
 const BYTE_NIL: u8        = 0x00;
 
-#[unstable(feature="decode")]
+#[unstable(feature = "decode")]
 pub fn decode_program<R>(source: &mut R) -> Result<List<SVMCell>, String>
     where R: Read
 {
@@ -233,7 +233,7 @@ impl<'a, R> Decoder<'a, R>
                 match ident {
                     IDENT_BYTES => Ok(()),
                     other_bytes => Err(
-                        format!("invalid identifying bytes {:#X}", other_bytes)
+                        format!("invalid identifying bytes {:#06x}", other_bytes)
                     )
                 }
             })
@@ -333,7 +333,7 @@ impl<'a, R> Decoder<'a, R>
                             .map( |cdr| (car, cdr) ),
                     BYTE_NIL  => Ok((car, box Nil)),
                     b         => Err(
-                        format!("Unexpected byte {:#X} while decoding CONS", b)
+                        format!("Unexpected byte {:#02x} while decoding CONS", b)
                     )
                 }
             })
@@ -361,7 +361,7 @@ impl<'a, R> Decoder<'a, R>
                                         .map(|cell|
                                               cell.map(SVMCell::ListCell)
                                         ),
-                    b            => Err(format!("Unsupported byte {:#X}", b))
+                    b            => Err(format!("Unsupported byte {:#02x}", b))
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
