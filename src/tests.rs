@@ -7,6 +7,7 @@ use super::Inst::*;
 
 use quickcheck::quickcheck;
 
+use test::Bencher;
 /*
 #[test]
 #[should_panic(expected="[fatal]: expected an instruction on control stack")]
@@ -1413,4 +1414,93 @@ fn test_eval_null() {
         }.eval(None,true).unwrap().0.stack.peek(),
         Some(&ListCell(box list!(AtomCell(SInt(1)))))
         );
+}
+
+#[bench]
+fn bench_list_creation(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(NIL),
+            InstCell(LDC), AtomCell(SInt(20)), InstCell(CONS),
+            InstCell(LDC), AtomCell(SInt(10)), InstCell(CONS)
+        ), true)
+    })
+}
+
+#[bench]
+fn bench_list_car(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(NIL),
+            InstCell(LDC), AtomCell(SInt(10)), InstCell(CONS),
+            InstCell(LDC), AtomCell(SInt(20)), InstCell(CONS),
+            InstCell(CAR)
+        ), true)
+    })
+}
+
+#[bench]
+fn bench_list_cdr(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(NIL),
+            InstCell(LDC), AtomCell(SInt(10)), InstCell(CONS),
+            InstCell(LDC), AtomCell(SInt(20)), InstCell(CONS),
+            InstCell(CDR)
+        ), true)
+    })
+}
+
+#[bench]
+fn bench_simple_add(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(LDC), AtomCell(SInt(10)),
+            InstCell(LDC), AtomCell(SInt(10)),
+            InstCell(ADD)
+        ), true)
+    })
+}
+
+#[bench]
+fn bench_nested_arith(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(LDC), AtomCell(SInt(5)),
+            InstCell(LDC), AtomCell(SInt(5)),
+            InstCell(ADD),
+            InstCell(LDC), AtomCell(SInt(20)),
+            InstCell(SUB)
+        ), true)
+    })
+}
+
+#[bench]
+fn bench_basic_branching_1(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(LDC), AtomCell(SInt(1)), InstCell(LDC), AtomCell(SInt(1)),
+            InstCell(SUB),
+            InstCell(LDC), AtomCell(SInt(0)),
+            InstCell(EQ),
+            InstCell(SEL),
+                ListCell(box list!(InstCell(LDC), AtomCell(SInt(1)), InstCell(JOIN))),
+                ListCell(box list!(InstCell(NIL), InstCell(JOIN))
+            )
+        ), true)
+    })
+}
+
+#[bench]
+fn bench_basic_branching_2(b: &mut Bencher) {
+    b.iter(|| {
+        super::eval_program(list!(
+            InstCell(NIL), InstCell(NULL),
+            InstCell(SEL),
+                ListCell(box list!(InstCell(LDC), AtomCell(SInt(10)), InstCell(JOIN))),
+                ListCell(box list!(InstCell(LDC), AtomCell(SInt(20)), InstCell(JOIN))),
+            InstCell(LDC), AtomCell(SInt(10)),
+            InstCell(ADD)
+        ), true)
+    })
 }

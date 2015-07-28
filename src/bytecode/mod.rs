@@ -141,17 +141,34 @@ use super::Inst::*;
 #[cfg(test)]
 mod tests;
 
-/// block reserved for future opcodes
-const RESERVED_START: u8 = 0x1E;
-const RESERVED_LEN: u8   = 0x12;
-/// block reserved for typetags
-const CONST_START: u8    = 0xC1;
-const CONST_LEN: u8      = 0x0E;
-/// important bytecodes
-const BYTE_CONS: u8      = 0xC0;
-const BYTE_NIL: u8       = 0x00;
+/// exported constants
+#[stable(feature="decode", since="0.3.0")]
+pub const IDENT_BYTES: u16 = 0x5ECD;
+#[stable(feature="decode", since="0.3.0")]
+pub const VERSION: u16     = 0x0000;
 
-const VERSION: u16       = 0x0000;
+/// block reserved for future opcodes
+const RESERVED_START: u8  = 0x1E;
+const RESERVED_LEN: u8    = 0x12;
+/// block reserved for typetags
+const CONST_START: u8     = 0xC1;
+const CONST_LEN: u8       = 0x0E;
+/// important bytecodes
+const BYTE_CONS: u8       = 0xC0;
+const BYTE_NIL: u8        = 0x00;
+
+#[unstable(feature = "decode")]
+pub fn decode_program<R>(source: &mut R) -> Result<List<SVMCell>, String>
+    where R: Read
+{
+    let mut decoder = Decoder::new(source);
+    decoder
+        .check_ident_bytes()
+        .map(|_| decoder.check_version()
+                        .map_err(|why| warn!("{}", why) )
+            )
+        .map(|_| decoder.collect::<List<SVMCell>>() )
+}
 
 #[stable(feature="decode", since="0.2.6")]
 pub struct Decoder<'a, R: 'a> {
@@ -203,10 +220,45 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
 
 
 #[stable(feature="decode", since="0.2.6")]
-impl<'a, R> Decoder<'a, R> where R: Read {
+impl<'a, R> Decoder<'a, R>
+    where R: Read
+{
+    #[stable(feature="decode", since="0.3.0")]
+    pub fn check_ident_bytes(&mut self) -> Result<(), String> {
+        self.source
+            .read_u16::<BigEndian>()
+            .map_err(|why| String::from(why.description()))
+            .and_then(|ident| {
+                self.num_read += 2;
+                match ident {
+                    IDENT_BYTES => Ok(()),
+                    other_bytes => Err(
+                        format!("invalid identifying bytes {:#06x}", other_bytes)
+                    )
+                }
+            })
+    }
+
+    #[stable(feature="decode", since="0.3.0")]
+    pub fn check_version(&mut self) -> Result<(), String> {
+        self.source
+            .read_u16::<BigEndian>()
+            .map_err(|why| String::from(why.description()))
+            .and_then(|version| {
+                self.num_read += 2;
+                match version {
+                    VERSION => Ok(()),
+                    bytes   => Err( // I expect this will generate a warning
+                                    // at the call site...
+                        format!("mismatched version {}, expected {}",
+                            bytes, version)
+                    )
+                }
+            })
+    }
 
     #[stable(feature="decode", since="0.2.6")]
-    pub fn new(src: &'a mut R) -> Decoder<'a, R>{
+    pub fn new(src: &'a mut R) -> Decoder<'a, R> {
         Decoder {
             source: src,
             num_read: 0
@@ -281,7 +333,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                             .map( |cdr| (car, cdr) ),
                     BYTE_NIL  => Ok((car, box Nil)),
                     b         => Err(
-                        format!("Unexpected byte {:#X} while decoding CONS", b)
+                        format!("Unexpected byte {:#02x} while decoding CONS", b)
                     )
                 }
             })
@@ -309,7 +361,7 @@ impl<'a, R> Decoder<'a, R> where R: Read {
                                         .map(|cell|
                                               cell.map(SVMCell::ListCell)
                                         ),
-                    b            => Err(format!("Unsupported byte {:#X}", b))
+                    b            => Err(format!("Unsupported byte {:#02x}", b))
                 }
             },
             Ok(0)    => Ok(None), //  we're out of bytes - EOF
