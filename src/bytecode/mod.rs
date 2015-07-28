@@ -164,13 +164,10 @@ pub fn decode_program<R>(source: &mut R) -> Result<List<SVMCell>, String>
     let mut decoder = Decoder::new(source);
     decoder
         .check_ident_bytes()
-        .and_then(|_| decoder.check_version()
-                            .or_else(|why| { warn!("{}", why); Ok(()) })
+        .map(|_| decoder.check_version()
+                        .map_err(|why| warn!("{}", why) )
             )
-        .and_then(|_|
-            unimplemented!() // todo: build list from iterator in error-safe way
-            )
-
+        .map(|_| decoder.collect::<List<SVMCell>>() )
 }
 
 #[stable(feature="decode", since="0.2.6")]
