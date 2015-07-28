@@ -66,7 +66,7 @@ fn prop_encode_char () {
     quickcheck(prop as fn(char) -> bool);
 }
 #[test]
-fn test_decode_whole_file () {
+fn test_decode_program () {
     let cell = ListCell(box list!(
         InstCell(LDC), AtomCell(SInt(1)), InstCell(LDC), AtomCell(SInt(1)),
         InstCell(SUB),
@@ -78,6 +78,46 @@ fn test_decode_whole_file () {
         )
     ));
     let mut encoded = vec![0x5e, 0xcd, 0x00, 0x00];
+    encoded.push_all(&cell.emit());
+    assert_eq!(
+        Ok(list!(cell)),
+        super::decode_program(&mut Cursor::new(encoded))
+    )
+}
+
+#[test]
+fn test_decode_program_no_ident () {
+    let cell = ListCell(box list!(
+        InstCell(LDC), AtomCell(SInt(1)), InstCell(LDC), AtomCell(SInt(1)),
+        InstCell(SUB),
+        InstCell(LDC), AtomCell(SInt(0)),
+        InstCell(EQ),
+        InstCell(SEL),
+            ListCell(box list!(InstCell(LDC), AtomCell(SInt(1)), InstCell(JOIN))),
+            ListCell(box list!(InstCell(NIL), InstCell(JOIN))
+        )
+    ));
+    let mut encoded = vec![0x00, 0x00];
+    encoded.push_all(&cell.emit());
+    assert_eq!(
+        Err(String::from("invalid identifying bytes 0x0000")),
+        super::decode_program(&mut Cursor::new(encoded))
+    )
+}
+
+#[test]
+fn test_decode_program_wrong_version () {
+    let cell = ListCell(box list!(
+        InstCell(LDC), AtomCell(SInt(1)), InstCell(LDC), AtomCell(SInt(1)),
+        InstCell(SUB),
+        InstCell(LDC), AtomCell(SInt(0)),
+        InstCell(EQ),
+        InstCell(SEL),
+            ListCell(box list!(InstCell(LDC), AtomCell(SInt(1)), InstCell(JOIN))),
+            ListCell(box list!(InstCell(NIL), InstCell(JOIN))
+        )
+    ));
+    let mut encoded = vec![0x5e, 0xcd, 0x10, 0x00];
     encoded.push_all(&cell.emit());
     assert_eq!(
         Ok(list!(cell)),
