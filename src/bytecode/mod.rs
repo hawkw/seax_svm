@@ -421,7 +421,7 @@ impl Encode for SVMCell {
         match *self {
             AtomCell(ref atom) => atom.emit(),
             InstCell(ref inst) => inst.emit(),
-            ListCell(box ref list) => list.emit()
+            ListCell(ref list) => (*list).emit()
         }
     }
 }
