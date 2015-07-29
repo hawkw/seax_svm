@@ -141,7 +141,7 @@ use super::Inst::*;
 #[cfg(test)]
 mod tests;
 
-#[cfg(not(feature = "nightly")]
+#[cfg(not(feature = "nightly"))]
 macro_rules! push_all {
     ( $vec:ident, $other:expr ) => {
         for item in $other {
