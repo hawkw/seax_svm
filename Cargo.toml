@@ -16,3 +16,6 @@ byteorder = "*"
 
 [dev-dependencies]
 quickcheck = "*"
+
+[features]
+nightly = []
