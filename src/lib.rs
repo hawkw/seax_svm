@@ -1,14 +1,9 @@
 #![crate_name = "seax_svm"]
-#![stable(feature="vm_core", since="0.1.2"))]
 #![crate_type = "lib"]
+#![cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.2") )]
 #![cfg_attr(test, feature(test))]
-#![cfg_attr(feature = "nightly",
-    feature(
-        vec_push_all,
-        box_patterns,
-        staged_api
-    )
-)]
+#![cfg_attr(feature = "nightly", feature(vec_push_all, box_patterns) )]
+#![cfg_attr(feature = "nightly", feature(staged_api) )]
 #![cfg_attr(feature = "nightly", staged_api)]
 
 
