@@ -70,9 +70,7 @@ impl<T> Stack<T> for List<T> {
     /// ```
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn push(self, item: T) -> List<T> {
-        Cons(item, box self)
-    }
+    fn push(self, item: T) -> List<T> { Cons(item, Box::new(self)) }
 
     /// Pop the top element of the stack.
     ///
@@ -104,10 +102,7 @@ impl<T> Stack<T> for List<T> {
 
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn empty() -> List<T> {
-        Nil
-    }
-
+    fn empty() -> List<T> { Nil }
 
     /// Peek at the top element of the stack.
     ///
@@ -170,9 +165,7 @@ impl<T> List<T> {
     /// Creates a new empty list
     #[stable(feature="list", since="0.1.0")]
     #[inline]
-    pub fn new() -> List<T> {
-        Nil
-    }
+    pub fn new() -> List<T> { Nil }
 
     /// Prepends the given item to the list.
     ///
@@ -202,9 +195,7 @@ impl<T> List<T> {
     /// ```
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    pub fn prepend(self, it: T) -> List<T> {
-        Cons(it, box self)
-    }
+    pub fn prepend(self, it: T) -> List<T> { Cons(it, Box::new(self)) }
 
     /// Appends an item to the end of the list.
     ///
@@ -234,7 +225,7 @@ impl<T> List<T> {
     pub fn append(&mut self, it: T) {
         match *self {
             Cons(_, box ref mut tail) => tail.append(it),
-            Nil => *self = Cons(it, box Nil)
+            Nil => *self = Cons(it, Box::new(Nil))
         }
 
     }
@@ -277,7 +268,7 @@ impl<T> List<T> {
     pub fn append_chain(&mut self, it: T) -> &mut List<T> {
         match *self {
             Cons(_, box ref mut tail) => tail.append_chain(it),
-            Nil => { *self = Cons(it, box Nil); self }
+            Nil => { *self = Cons(it, Box::new(Nil)); self }
         }
 
     }
@@ -444,9 +435,7 @@ impl<T> FromIterator<T> for List<T> {
 
 /// Wraps a List<T> to allow it to be used as an Iterator<T>
 #[stable(feature="list", since="0.1.0")]
-pub struct ListIterator<'a, T:'a> {
-    current: &'a List<T>
-}
+pub struct ListIterator<'a, T:'a> { current: &'a List<T> }
 
 /// Implementation of Iterator for List. This allows iteration by
 /// link hopping.

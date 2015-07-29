@@ -344,13 +344,13 @@ impl<'a, R> Decoder<'a, R>
                             .and_then(|cdr| cdr.ok_or(
                                 String::from("EOF while decoding CONS")) )
                             .map( |cdr| (car, cdr) ),
-                    BYTE_NIL  => Ok((car, box Nil)),
+                    BYTE_NIL  => Ok((car, Box::new(Nil))),
                     b         => Err(
                         format!("Unexpected byte {:#02x} while decoding CONS", b)
                     )
                 }
             })
-            .map(|(car, cdr)| Some(box Cons(car, cdr)) )
+            .map(|(car, cdr)| Some(Box::new( Cons(car, cdr)) ))
     }
 
     /// Decodes the next cell in the source
