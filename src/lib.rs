@@ -1,5 +1,5 @@
 #![crate_name = "seax_svm"]
-#![stable(feature="vm_core", since="0.1.2")]
+#![stable(feature="vm_core", since="0.1.2"))]
 #![crate_type = "lib"]
 #![cfg_attr(test, feature(test))]
 #![cfg_attr(feature = "nightly",
@@ -24,7 +24,7 @@ extern crate byteorder;
 /// `Stack<T>` is a trait providing stack operations(`push()`, `pop()`, and
 /// `peek()`), and an implementation for `List`.
 #[macro_use]
-#[stable(feature="list", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="list", since="0.1.0"))]
 pub mod slist;
 
 /// SVM cell types.
@@ -33,10 +33,10 @@ pub mod slist;
 /// int, signed int, float, or string), a pointer to a list cell, or an
 /// instruction.
 #[macro_use]
-#[stable(feature="vm_core", since="0.1.2")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.2"))]
 pub mod cell;
 
-#[unstable(feature="bytecode")]
+#[unstable(feature="bytecode"))]
 pub mod bytecode;
 
 #[cfg(test)]
@@ -56,7 +56,7 @@ use self::cell::Inst::*;
 
 /// Represents a SVM machine state
 #[derive(PartialEq,Clone,Debug)]
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 pub struct State {
     stack:  List<SVMCell>,
     env:    List<SVMCell>,
@@ -71,7 +71,7 @@ pub struct State {
 /// never be marked as stable. Consider this struct and anything that depends
 /// on it to be an ugly hack.
 #[derive(PartialEq,Clone,Debug)]
-#[unstable(feature="eval")]
+#[cfg_attr(feature = "nightly", unstable(feature="eval"))]
 pub enum IOEvent {
     /// A character was requested from the buffer
     Req,
@@ -79,14 +79,14 @@ pub enum IOEvent {
     Buf(char)
 }
 
-#[unstable(feature="eval")]
+#[cfg_attr(feature = "nightly", unstable(feature="eval"))]
 pub type EvalResult = Result<(State,Option<IOEvent>), String>;
 
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 impl State {
 
     /// Creates a new empty state
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     pub fn new() -> State {
         State {
             stack: Stack::empty(),
@@ -102,7 +102,7 @@ impl State {
     /// This produces state dumps suitable for printing as part of
     /// an error report. This is different from fmt::Debug since it
     /// includes a tag for the error reporter.
-    #[stable(feature="debug", since="0.2.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="debug", since="0.2.0"))]
     pub fn dump_state(&self, tag: &str) -> String {
         format!(
             "[{t}] State dump:\n[{t}]\t\tStack:\t {s:?}\n[{t}]\t\tEnv:\t {e:?}\n[{t}]\t\tControl: {c:?}\n[{t}]\t\tDump:\t {d:?}\n",
@@ -124,7 +124,7 @@ impl State {
     ///  - `outp`: an output stream implementing `io::Write`
     ///  - `debug`: whether or not to snapshot the state before evaluating. This provides more detailed debugging information on errors, but may have a significant impact on performance.
     ///
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     pub fn eval(self,
                 input: Option<u8>,
                 debug: bool)
@@ -751,7 +751,7 @@ impl State {
 ///
 /// Evaluates a program (control stack) and returns the final state.
 /// TODO: add (optional?) parameters for stdin and stdout
-#[stable(feature="vm_core",since="0.2.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core",since="0.2.0"))]
 pub fn eval_program(program: List<SVMCell>,
                     debug: bool)
     -> Result<List<SVMCell>,String> {
