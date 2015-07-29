@@ -141,7 +141,7 @@ use super::Inst::*;
 #[cfg(test)]
 mod tests;
 
-#[cfg(not(feature = "nightly"))]
+#[cfg(not(feature = "nightly")]
 macro_rules! push_all {
     ( $vec:ident, $other:expr ) => {
         for item in $other {
@@ -155,9 +155,9 @@ macro_rules! push_all {
 }
 
 /// exported constants
-#[stable(feature="decode", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.3.0"))]
 pub const IDENT_BYTES: u16 = 0x5ECD;
-#[stable(feature="decode", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.3.0"))]
 pub const VERSION: u16     = 0x0000;
 
 /// block reserved for future opcodes
@@ -170,7 +170,7 @@ const CONST_LEN: u8       = 0x0E;
 const BYTE_CONS: u8       = 0xC0;
 const BYTE_NIL: u8        = 0x00;
 
-#[unstable(feature = "decode")]
+#[cfg_attr(feature = "nightly", unstable(feature = "decode"))]
 pub fn decode_program<R>(source: &mut R) -> Result<List<SVMCell>, String>
     where R: Read
 {
@@ -183,13 +183,13 @@ pub fn decode_program<R>(source: &mut R) -> Result<List<SVMCell>, String>
         .map(|_| decoder.collect::<List<SVMCell>>() )
 }
 
-#[stable(feature="decode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
 pub struct Decoder<'a, R: 'a> {
     source: &'a mut R,
     num_read: usize
 }
 
-#[stable(feature="decode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
 fn decode_inst(byte: &u8) -> Result<Inst, String> {
     match *byte {
         BYTE_NIL => Ok(NIL),
@@ -232,11 +232,11 @@ fn decode_inst(byte: &u8) -> Result<Inst, String> {
 }
 
 
-#[stable(feature="decode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
 impl<'a, R> Decoder<'a, R>
     where R: Read
 {
-    #[stable(feature="decode", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.3.0"))]
     pub fn check_ident_bytes(&mut self) -> Result<(), String> {
         self.source
             .read_u16::<BigEndian>()
@@ -252,7 +252,7 @@ impl<'a, R> Decoder<'a, R>
             })
     }
 
-    #[stable(feature="decode", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.3.0"))]
     pub fn check_version(&mut self) -> Result<(), String> {
         self.source
             .read_u16::<BigEndian>()
@@ -270,7 +270,7 @@ impl<'a, R> Decoder<'a, R>
             })
     }
 
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     pub fn new(src: &'a mut R) -> Decoder<'a, R> {
         Decoder {
             source: src,
@@ -279,12 +279,12 @@ impl<'a, R> Decoder<'a, R>
     }
 
     /// Returns the number of bytes read by the decoder
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     pub fn num_read(&self) -> usize {
         self.num_read
     }
 
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     fn decode_const(&mut self, byte: &u8) -> Result<Atom, String> {
         match *byte & 0x0F { // extract the type tag
             1 => {
@@ -323,7 +323,7 @@ impl<'a, R> Decoder<'a, R>
         }
     }
     // Decodes a CONS cell
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     fn decode_cons(&mut self) -> Result<Option<Box<List<SVMCell>>>, String> {
         self.next_cell()
             .and_then(|car|
@@ -354,7 +354,7 @@ impl<'a, R> Decoder<'a, R>
     }
 
     /// Decodes the next cell in the source
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     pub fn next_cell(&mut self) -> Result<Option<SVMCell>,String> {
         let mut buf = [0;1];
         match self.source.read(&mut buf) {
@@ -385,20 +385,20 @@ impl<'a, R> Decoder<'a, R>
 
 }
 
-#[stable(feature="decode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
 impl<'a, R> Iterator for Decoder<'a, R> where R: Read {
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     type Item = SVMCell;
 
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     fn next(&mut self) -> Option<SVMCell> {
         self.next_cell()
             .unwrap()
     }
 }
-#[stable(feature="decode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
 impl<'a, R> fmt::Debug for Decoder<'a, R>  where R: fmt::Debug {
-    #[stable(feature="decode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="decode", since="0.2.6"))]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Decoding from: {:?}, {} bytes read",
             self.source,
@@ -408,15 +408,15 @@ impl<'a, R> fmt::Debug for Decoder<'a, R>  where R: fmt::Debug {
 
 }
 
-#[stable(feature="encode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
 pub trait Encode {
-    #[stable(feature="encode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
     fn emit(&self) -> Vec<u8>;
 }
 
-#[stable(feature="encode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
 impl Encode for SVMCell {
-    #[stable(feature="encode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
     fn emit(&self) -> Vec<u8> {
         match *self {
             AtomCell(ref atom) => atom.emit(),
@@ -426,9 +426,9 @@ impl Encode for SVMCell {
     }
 }
 
-#[stable(feature="encode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
 impl Encode for Atom {
-    #[stable(feature="encode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
     fn emit(&self) -> Vec<u8> {
         match *self {
             UInt(value) => {
@@ -459,9 +459,9 @@ impl Encode for Atom {
     }
 }
 
-#[stable(feature="encode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
 impl Encode for Inst {
-    #[stable(feature="encode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
     fn emit(&self) -> Vec<u8> {
         match *self {
             NIL     => vec![BYTE_NIL],
@@ -498,9 +498,9 @@ impl Encode for Inst {
     }
 }
 
-#[stable(feature="encode", since="0.2.6")]
+#[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
 impl<T> Encode for List<T> where T: Encode {
-    #[stable(feature="encode", since="0.2.6")]
+    #[cfg_attr(feature = "nightly", stable(feature="encode", since="0.2.6"))]
     fn emit(&self) -> Vec<u8> {
         match *self {
             Cons(ref it, ref tail) => {
