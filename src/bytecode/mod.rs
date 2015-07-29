@@ -503,10 +503,10 @@ impl<T> Encode for List<T> where T: Encode {
     #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
-            Cons(ref it, box ref tail) => {
+            Cons(ref it, ref tail) => {
                 let mut result = vec![BYTE_CONS];
                 push_all!(result, &it.emit());
-                push_all!(result, &tail.emit());
+                push_all!(result, &(*tail.emit()));
                 result
             },
             Nil => vec![BYTE_NIL]
