@@ -324,7 +324,7 @@ impl<T> List<T> {
         }
     }
 
-    /// Returns the next cell in the list.
+    /// Returns the tail of the list from this element.
     ///
     /// # Examples
     /// ```
@@ -333,12 +333,12 @@ impl<T> List<T> {
     /// # use seax_svm::slist::List::{Cons,Nil};
     /// # fn main() {
     /// let list = list!(1,2,3,4);
-    /// assert_eq!(list.next(), &list!(2,3,4))
+    /// assert_eq!(list.tail(), &list!(2,3,4))
     /// # }
     /// ```
     #[inline]
     #[stable(feature="list", since="0.2.8")]
-    pub fn next<'a>(&'a self) -> &'a Self {
+    pub fn tail<'a>(&'a self) -> &'a Self {
         match self {
             &Cons(_, ref cdr) => cdr,
             nil @ &Nil        => nil
@@ -405,7 +405,7 @@ impl<T> List<T> {
     /// ```
     #[stable(feature="list",since="0.3.0")]
     pub fn get<'a>(&'a self, index: u64) -> Option<&'a T> {
-        match (0..index).fold(self, |acc, _| acc.next()) {
+        match (0..index).fold(self, |acc, _| acc.tail()) {
             &Cons(ref car,_) => Some(car),
             &Nil             => None
         }
