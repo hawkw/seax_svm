@@ -1,9 +1,9 @@
 #![crate_name = "seax_svm"]
 #![stable(feature="vm_core", since="0.1.2")]
 #![crate_type = "lib"]
+#![cfg_attr(test, feature(test))]
 #![feature(vec_push_all)]
 #![feature(box_syntax,box_patterns)]
-#![feature(test)]
 #![feature(staged_api)]
 #![staged_api]
 
