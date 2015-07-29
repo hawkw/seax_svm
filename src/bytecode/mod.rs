@@ -141,6 +141,19 @@ use super::Inst::*;
 #[cfg(test)]
 mod tests;
 
+#[cfg(not(feature = "nightly"))]
+macro_rules! push_all {
+    ( $vec:ident, $other:expr ) => {
+        for item in $other {
+            $vec.push(item);
+        }
+    }
+}
+#[cfg(feature = "nightly")]
+macro_rules! push_all {
+    ( $vec:ident, $other:expr ) => { $vec.push_all($other); }
+}
+
 /// exported constants
 #[stable(feature="decode", since="0.3.0")]
 pub const IDENT_BYTES: u16 = 0x5ECD;
@@ -492,8 +505,8 @@ impl<T> Encode for List<T> where T: Encode {
         match *self {
             Cons(ref it, box ref tail) => {
                 let mut result = vec![BYTE_CONS];
-                result.push_all(&it.emit());
-                result.push_all(&tail.emit());
+                push_all!(result, &it.emit());
+                push_all!(result, &tail.emit());
                 result
             },
             Nil => vec![BYTE_NIL]
