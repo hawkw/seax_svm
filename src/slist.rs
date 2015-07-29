@@ -224,7 +224,7 @@ impl<T> List<T> {
     #[stable(feature="list", since="0.2.3")]
     pub fn append(&mut self, it: T) {
         match *self {
-            Cons(_, box ref mut tail) => tail.append(it),
+            Cons(_, ref mut tail) => (*tail).append(it),
             Nil => *self = Cons(it, Box::new(Nil))
         }
 
@@ -267,7 +267,7 @@ impl<T> List<T> {
     #[stable(feature="list", since="0.2.3")]
     pub fn append_chain(&mut self, it: T) -> &mut List<T> {
         match *self {
-            Cons(_, box ref mut tail) => tail.append_chain(it),
+            Cons(_, ref mut tail) => (*tail).append_chain(it),
             Nil => { *self = Cons(it, Box::new(Nil)); self }
         }
 
@@ -294,6 +294,24 @@ impl<T> List<T> {
         }
     }
 
+    #[inline]
+    #[stable(feature="list", since="0.2.8")]
+    pub fn is_empty (&self) -> bool {
+        match *self {
+            Cons(_,_) => false,
+            Nil       => true
+        }
+    }
+
+    #[inline]
+    #[stable(feature="list", since="0.2.8")]
+    pub fn next<'a>(&'a self) -> &'a Self {
+        match self {
+            &Cons(_, ref cdr) => cdr,
+            nil @ &Nil        => nil
+        }
+    }
+
     /// Provide a forward iterator
     #[inline]
     #[stable(feature="list", since="0.1.0")]
@@ -317,8 +335,8 @@ impl<T> List<T> {
     #[stable(feature="list", since="0.1.0")]
     pub fn last(&self) -> &T {
         match *self {
-            Cons(ref car, box Nil) => &car,
-            Cons(_, ref cdr @ box Cons(_,_)) => cdr.last(),
+            Cons(ref car, ref cdr) if cdr.is_empty() => &car,
+            Cons(_, ref cdr) => (*cdr).last(),
             Nil => panic!("Last called on empty list")
         }
     }
@@ -354,26 +372,11 @@ impl<T> List<T> {
     /// ```
     #[stable(feature="list",since="0.3.0")]
     pub fn get<'a>(&'a self, index: u64) -> Option<&'a T> {
-        match index {
-            0 => match *self {
-                Cons(ref car, _) => Some(&car),
-                Nil => None
-            },
-            1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => Some(&cdr),
-                _ => None
-            },
-            i if i == self.length() as u64 => Some(self.last()),
-            i if i > self.length() as u64  => None,
-            i if i > 1 => {
-                let mut it = self.iter();
-                for _ in 0 .. i{
-                    it.next();
-                }
-                it.next()
-            },
-            _ => None
+        match (0..index).fold(self, |acc, _| acc.next()) {
+            &Cons(ref car,_) => Some(car),
+            &Nil             => None
         }
+
     }
 }
 
