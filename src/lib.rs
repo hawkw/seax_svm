@@ -1,7 +1,6 @@
 #![crate_name = "seax_svm"]
 #![stable(feature="vm_core", since="0.1.2")]
 #![crate_type = "lib"]
-
 #![cfg_attr(test, feature(test))]
 #![cfg_attr(feature = "nightly",
     feature(
@@ -11,6 +10,7 @@
     )
 )]
 #![cfg_attr(feature = "nightly", staged_api)]
+
 
 #[cfg(test)] extern crate quickcheck;
 #[cfg(test)] extern crate test;
