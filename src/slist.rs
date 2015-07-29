@@ -484,7 +484,10 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
     #[stable(feature="list", since="0.1.0")]
     fn next(&mut self) -> Option<&'a T> {
         match self.current {
-            &Cons(ref head, box ref tail) => { self.current = tail; Some(head) },
+            &Cons(ref head, ref tail) => {
+                self.current = &(**tail);
+                Some(head)
+                },
             &Nil => None
         }
     }
@@ -517,27 +520,7 @@ impl<T> Index<usize> for List<T> {
     #[inline]
     #[stable(feature="list", since="0.1.0")]
     fn index<'a>(&'a self, _index: usize) -> &'a T {
-        match _index {
-            0usize => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1usize => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() => self.last(),
-            i if i > self.length()  => panic!("List index {:?} out of range.", _index),
-            i if i > 1usize => {
-                let mut it = self.iter();
-                for _ in 0usize .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
-        }
+        &self[_index as u64]
     }
 }
 
@@ -562,27 +545,8 @@ impl<T> Index<u64> for List<T> {
     #[inline]
     #[stable(feature="list", since="0.3.0")]
     fn index<'a>(&'a self, _index: u64) -> &'a T {
-        match _index {
-            0 => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() as u64 => self.last(),
-            i if i > self.length() as u64  => panic!("List index {:?} out of range.", _index),
-            i if i > 1 => {
-                let mut it = self.iter();
-                for _ in 0 .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
-        }
+        self.get(_index)
+            .expect(&format!("list index {} out of range", _index))
     }
 }
 
@@ -610,26 +574,10 @@ impl<T> Index<i64> for List<T> {
     #[stable(feature="list", since="0.3.0")]
     #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
     fn index<'a>(&'a self, _index: i64) -> &'a T {
-        match _index {
-            0 => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() as i64 => self.last(),
-            i if i > self.length() as i64  => panic!("List index {:?} out of range.", _index),
-            i if i > 1 => {
-                let mut it = self.iter();
-                for _ in 0 .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
+        if _index < 0 {
+            panic!("attempt to access negative index {}", _index)
+        } else {
+            &self[_index as u64]
         }
     }
 }
@@ -657,26 +605,10 @@ impl<T> Index<isize> for List<T> {
     #[stable(feature="list", since="0.1.0")]
     #[deprecated(since="0.2.5", reason="use unsigned indices instead")]
     fn index<'a>(&'a self, _index: isize) -> &'a T {
-        match _index {
-            0isize => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1isize => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() as isize => self.last(),
-            i if i > self.length() as isize => panic!("List index {:?} out of range.", _index),
-            i if i > 1isize => {
-                let mut it = self.iter();
-                for _ in 0isize .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
+        if _index < 0 {
+            panic!("attempt to access negative index {}", _index)
+        } else {
+            &self[_index as u64]
         }
     }
 }
