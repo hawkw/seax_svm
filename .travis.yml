@@ -22,14 +22,14 @@ env:
   - secure: hOaCd97R1ixJZzYZolcMBlqEtm/WAnIjNfUdIAne6GecWrpIrpUL6K9kXCv/LAOp0T2JzcbT/a9AlwSgzse5ZTqsf39letwtmCP4iMnoX6cqBGL39jTXMCQKYRhOKQiINhpu1pBnTyxHJAzKry+dglbaYHqapu/v7VR18Zqn0IpbawKw/C0xZzmnNZ8HUco30JVtRC8vNOUvoJNtlz1I7Q9H8GLBJ3E6ACfnz+pQomtuTcw28bkXxFC2WtaQAXWHbkJujVs+9RrD4EfbHJL1fkqQeJn/aoxfN0JBb3pTPWSi/ydPJUDXKrZkRqfAmb3YcTqOSO4jg+EpstNhHLf8nnz9pjMbxJEsLP/yTVSPefcTehwDnSK/0+1mmgWNBrXMzrapJUxVWSlc4oAvwk+mbju/LmVLZrP7uWUuPjRHCMOzpvZu62bUqq5j7QewTzQop6w56UbhRmlGhWqLD/oZbtZh/FwQ5TslsQtERAAPRV3lwIsE9ePC4rgNJi1petECCAkPufr+SmL8oReB8aa0NC5ojnc9lGxA8DIqW/9IwILBwRMCR+9iUO5ukclc7KxmayeCBZZJxCX5JRylfUhGarl+l8kgd7AE61YMO8dZ08U5ERlTgmoixtTcZB7wJY7JpBN7kg/O9wFp9VWw0FcQVwbyoqBlv7C9CkaMc2E/QpI=
   - secure: E+00NmwXknVUGsmmcDsEkuLPJCTM6/GXUspvWAhN7i58eSY/zn4pG0Kl0bCy8/uMpdo8TsJZ1844qgrufqlxnrieIURb9xi/+niB5Eld5PR4G9kQqKcSAyIXy4RUKmWeq4V/DUiYHs1wEQm+gWmVyAa6uDVuCfXOqJ9l792kl6ITOMYOLgXpCR9S5SUDICHBBRCedF/Rd6ok2igDu6Sn90PO+/VO5JGLe9jfSg3dl9KNUc8waLT/ra8a0Xd5v1r9dlMR+FuBIKgtk8bkVhGlEjYoeO7IT3MITH7XMCVQCVrS0/1RjIcLIQClDFtcOFIIbtgWS7LndYeHzHmKIsuO+QZTC0LmLq3HjfPhey1SZ9y0IC/Fbq1ph3uUnBKiXEom9LMsj0pl8GlKwbbbW0G6IsMzNl17M3yk/wj8FPftNXQP9uCdYSucKWPJ29rq2XfYXPDn0wr0foVJWSknJJ375Q3vBpUn9jVsldESx6AC7nUKnZWrqMhVbfTOR6q1GMMUbanVtGHgQLPOaKMD3fyBI/XgwiJ/VcWP3A7IpwmZjAFVkGCGCxN5AESRH7hy/YbP+UhxEluE0rnnzcrA69wMR7IQYwrjuK7WroMIMPfPaJhUB+q0d+PZEw9B8YReIujqXYEAeJoUEFWGWJuBbGL+3NSk/SusDxASTj3l8kTIVo0=
 after_success:
-- travis-cargo coveralls --no-sudo
+- travis-cargo coveralls --only nightly --no-sudo
 - bash <(curl https://codecov.io/bash)
 before_deploy:
 - travis-cargo doc
 - travis-cargo doc-upload
-- cargo build --release
-- cargo package
-- cargo publish --token $CRATES_TOKEN
+- travis-cargo build -- --release
+- travis-cargo package
+- travis-cargo publish --token $CRATES_TOKEN
 deploy:
   provider: releases
   api_key:
@@ -37,4 +37,5 @@ deploy:
   file: target/release/libseax_svm.rlib
   on:
     repo: hawkw/seax_svm
+    rust: nightly
     tags: true
