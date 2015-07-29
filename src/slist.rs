@@ -294,6 +294,27 @@ impl<T> List<T> {
         }
     }
 
+    /// Returns true if the list is empty, false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// # #[macro_use] extern crate seax_svm;
+    /// # use seax_svm::slist::List;
+    /// # use seax_svm::slist::List::{Cons,Nil};
+    /// # fn main() {
+    /// let list = list!(1,2,3,4);
+    /// assert_eq!(list.is_empty(), false)
+    /// # }
+    /// ```
+    /// ```
+    /// # #[macro_use] extern crate seax_svm;
+    /// # use seax_svm::slist::List;
+    /// # use seax_svm::slist::List::{Cons,Nil};
+    /// # fn main() {
+    /// let list: List<isize> = Nil;
+    /// assert_eq!(list.is_empty(), true)
+    /// # }
+    /// ```
     #[inline]
     #[stable(feature="list", since="0.2.8")]
     pub fn is_empty (&self) -> bool {
@@ -303,6 +324,18 @@ impl<T> List<T> {
         }
     }
 
+    /// Returns the next cell in the list.
+    ///
+    /// # Examples
+    /// ```
+    /// # #[macro_use] extern crate seax_svm;
+    /// # use seax_svm::slist::List;
+    /// # use seax_svm::slist::List::{Cons,Nil};
+    /// # fn main() {
+    /// let list = list!(1,2,3,4);
+    /// assert_eq!(list.next(), &list!(2,3,4))
+    /// # }
+    /// ```
     #[inline]
     #[stable(feature="list", since="0.2.8")]
     pub fn next<'a>(&'a self) -> &'a Self {
@@ -381,7 +414,7 @@ impl<T> List<T> {
 }
 
 #[stable(feature="list", since="0.2.5")]
-impl<'a, T> fmt::Display for List<T> where T: fmt::Display{
+impl<'a, T> fmt::Display for List<T> where T: fmt::Display {
     #[stable(feature="list", since="0.2.5")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut it = self.iter();
@@ -481,7 +514,7 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
     /// # }
     /// ```
     #[inline]
-    #[stable(feature="list", since="0.1.0")]
+    #[stable(feature="list", since="0.2.8")]
     fn next(&mut self) -> Option<&'a T> {
         match self.current {
             &Cons(ref head, ref tail) => {
@@ -508,7 +541,7 @@ impl<'a, T> ExactSizeIterator for ListIterator<'a, T> {
 /// # use seax_svm::slist::List;
 /// # use seax_svm::slist::List::{Cons, Nil};
 /// # fn main () {
-/// let list = list!(1,2,3,4,5,6);
+/// let list: List<isize> = list!(1,2,3,4,5,6);
 /// assert_eq!(list[0usize], 1);
 /// # }
 /// ```
@@ -518,7 +551,7 @@ impl<T> Index<usize> for List<T> {
     type Output = T;
 
     #[inline]
-    #[stable(feature="list", since="0.1.0")]
+    #[stable(feature="list", since="0.2.8")]
     fn index<'a>(&'a self, _index: usize) -> &'a T {
         &self[_index as u64]
     }
@@ -537,13 +570,13 @@ impl<T> Index<usize> for List<T> {
 /// assert_eq!(list[0usize], 1);
 /// # }
 /// ```
-#[stable(feature="list", since="0.3.0")]
+#[stable(feature="list", since="0.2.0")]
 impl<T> Index<u64> for List<T> {
-    #[stable(feature="list", since="0.3.0")]
+    #[stable(feature="list", since="0.2.0")]
     type Output = T;
 
     #[inline]
-    #[stable(feature="list", since="0.3.0")]
+    #[stable(feature="list", since="0.2.8")]
     fn index<'a>(&'a self, _index: u64) -> &'a T {
         self.get(_index)
             .expect(&format!("list index {} out of range", _index))
@@ -563,16 +596,16 @@ impl<T> Index<u64> for List<T> {
 /// assert_eq!(list[0isize], 1);
 /// # }
 /// ```
-#[stable(feature="list", since="0.3.0")]
-#[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+#[stable(feature="list", since="0.1.0")]
+#[deprecated(since="0.2.0", reason="use unsigned indices instead")]
 impl<T> Index<i64> for List<T> {
-    #[stable(feature="list", since="0.3.0")]
-    #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+    #[stable(feature="list", since="0.1.0")]
+    #[deprecated(since="0.2.0", reason="use unsigned indices instead")]
     type Output = T;
 
     #[inline]
-    #[stable(feature="list", since="0.3.0")]
-    #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+    #[stable(feature="list", since="0.1.0")]
+    #[deprecated(since="0.2.0", reason="use unsigned indices instead")]
     fn index<'a>(&'a self, _index: i64) -> &'a T {
         if _index < 0 {
             panic!("attempt to access negative index {}", _index)
