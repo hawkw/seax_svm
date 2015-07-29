@@ -2,10 +2,15 @@
 #![stable(feature="vm_core", since="0.1.2")]
 #![crate_type = "lib"]
 #![cfg_attr(test, feature(test))]
-#![feature(vec_push_all)]
-#![feature(box_syntax,box_patterns)]
-#![feature(staged_api)]
-#![staged_api]
+#![cfg_attr(feature = "nightly",
+    feature(
+        vec_push_all,
+        box_patterns,
+        staged_api
+    )
+)]
+#![cfg_attr(feature = "nightly", staged_api)]
+
 
 #[cfg(test)] extern crate quickcheck;
 #[cfg(test)] extern crate test;
@@ -27,6 +32,7 @@ pub mod slist;
 /// A cell in the VM can be either an atom (single item, either unsigned
 /// int, signed int, float, or string), a pointer to a list cell, or an
 /// instruction.
+#[macro_use]
 #[stable(feature="vm_core", since="0.1.2")]
 pub mod cell;
 
@@ -131,7 +137,7 @@ impl State {
         match self.control.pop().unwrap() {
             // NIL: pop an empty list onto the stack
             (InstCell(NIL), new_control) => Ok((State {
-                stack: self.stack.push(ListCell(box List::new())),
+                stack: self.stack.push(list_cell![]),
                 env: self.env,
                 control: new_control,
                 dump: self.dump
@@ -182,7 +188,7 @@ impl State {
                     box Cons(AtomCell(SInt(idx)),
                     box Nil))
                     ), newer_control)) =>  match self.env[(lvl-1)] {
-                        SVMCell::ListCell(ref level) => Ok((State {
+                        ListCell(ref level) => Ok((State {
                             stack: self.stack.push(level[(idx-1)].clone()),
                             env: self.env.clone(),
                             control: newer_control,
@@ -211,11 +217,11 @@ impl State {
                         prev.map_or(String::new(), |x| x.dump_state("fatal") )))
                 });
                 Ok((State {
-                    stack: self.stack.push(ListCell( box list!(
+                    stack: self.stack.push(list_cell![
                         func,
-                            self.env
-                                .get(0)
-                                .map_or(ListCell(box Nil), |it| it.clone())) )),
+                        self.env.get(0)
+                            .map_or(list_cell![], |it| it.clone())
+                        ]),
                     env: self.env,
                     control: newer_control,
                     dump: self.dump
@@ -395,8 +401,8 @@ impl State {
                     (AtomCell(a), AtomCell(b)) => Ok((State {
                         stack: newer_stack.push(
                             match a == b {
-                                true    => ListCell(box list!(AtomCell(SInt(1)))),
-                                false   => ListCell(box Nil)
+                                true    => list_cell![AtomCell(SInt(1))],
+                                false   => list_cell![]
                             }),
                         env: self.env,
                         control: new_control,
@@ -412,8 +418,8 @@ impl State {
                     (AtomCell(a), AtomCell(b)) => Ok((State {
                         stack: newer_stack.push(
                             match a > b {
-                                true    => ListCell(box list!(AtomCell(SInt(1)))),
-                                false   => ListCell(box Nil)
+                                true    => list_cell![AtomCell(SInt(1))],
+                                false   => list_cell![]
                             }
                         ),
                         env: self.env,
@@ -430,8 +436,8 @@ impl State {
                     (AtomCell(a), AtomCell(b)) => Ok((State {
                         stack: newer_stack.push(
                             match a >= b {
-                                true    => ListCell(box list!(AtomCell(SInt(1)))),
-                                false   => ListCell(box Nil)
+                                true    => list_cell![AtomCell(SInt(1))],
+                                false   => list_cell![]
                             }
                         ),
                         env: self.env,
@@ -448,8 +454,8 @@ impl State {
                     (AtomCell(a), AtomCell(b)) => Ok((State {
                         stack: newer_stack.push(
                             match a < b {
-                                true    => ListCell(box list!(AtomCell(SInt(1)))),
-                                false   => ListCell(box Nil)
+                                true    => list_cell![AtomCell(SInt(1))],
+                                false   => list_cell![]
                             }
                         ),
                         env: self.env,
@@ -466,8 +472,8 @@ impl State {
                     (AtomCell(a), AtomCell(b)) => Ok((State {
                         stack: newer_stack.push(
                             match a <= b {
-                                true    => ListCell(box list!(AtomCell(SInt(1)))),
-                                false   => ListCell(box Nil)
+                                true    => list_cell![AtomCell(SInt(1))],
+                                false   => list_cell![]
                             }),
                         env: self.env,
                         control: new_control,
@@ -481,8 +487,8 @@ impl State {
                 Ok((State {
                     stack: new_stack.push(
                         match target {
-                            AtomCell(_) => ListCell(box list!(AtomCell(SInt(1)))),
-                            _           => ListCell(box Nil)
+                            AtomCell(_) => list_cell![AtomCell(SInt(1))],
+                            _           => list_cell![]
                         }
                         ),
                     env: self.env,
@@ -497,13 +503,13 @@ impl State {
                                 stack: Stack::empty(),
                                 env: match v {
                                     ListCell(_) => params.push(v),
-                                    _           => params.push(ListCell(box list!(v)))
+                                    _           => list!(v)
                                 },
                                 control: func,
                                 dump: self.dump
-                                    .push(ListCell(box newer_stack))
-                                    .push(ListCell(box self.env))
-                                    .push(ListCell(box new_control))
+                                    .push(ListCell(Box::new(newer_stack)))
+                                    .push(ListCell(Box::new(self.env)))
+                                    .push(ListCell(Box::new(new_control)))
                             }, None)),/*
                             Some((v @ AtomCell(_), newer_stack)) => State {
                                 stack: Stack::empty(),
@@ -535,9 +541,9 @@ impl State {
                             env: params.push(v),
                             control: func,
                             dump: self.dump
-                                    .push(ListCell(box new_control))
-                                    .push(ListCell(box self.env.pop().unwrap().1))
-                                    .push(ListCell(box newer_stack))
+                                    .push(ListCell(Box::new(new_control)))
+                                    .push(ListCell(Box::new(self.env.pop().unwrap().1)))
+                                    .push(ListCell(Box::new(newer_stack)))
                         }, None)),
                         Some((thing, _)) => Err(format!(
                             "[fatal][RAP]: Expected closure on stack, got:\n[fatal]\t{:?}\n{}",
@@ -593,14 +599,14 @@ impl State {
                                     stack: new_stack,
                                     env: self.env,
                                     control: false_case,
-                                    dump: self.dump.push(ListCell(box newest_control))
+                                    dump: self.dump.push(ListCell(Box::new(newest_control)))
                                 }, None)),
                                 // True case
                                 Some((_, new_stack)) => Ok((State {
                                     stack: new_stack,
                                     env: self.env,
                                     control: true_case,
-                                    dump: self.dump.push(ListCell(box newest_control))
+                                    dump: self.dump.push(ListCell(Box::new(newest_control)))
                                 }, None)),
                                 None => Err(format!(
                                     "[fatal][SEL]: expected non-empty stack\n{}",
@@ -660,7 +666,7 @@ impl State {
                 Some((thing, new_stack)) => {
                     match new_stack.pop() {
                         Some((ListCell(list), newer_stack)) => Ok((State {
-                            stack: newer_stack.push(ListCell(box Cons(thing, list))),
+                            stack: newer_stack.push(ListCell(Box::new(Cons(thing, list)))),
                             env: self.env,
                             control: new_control,
                             dump: self.dump
@@ -683,8 +689,8 @@ impl State {
                 Ok((State {
                     stack: new_stack.push(
                         match target {
-                            ListCell(box Nil) => ListCell(box list!(AtomCell(SInt(1)))),
-                            _                 => ListCell(box Nil)
+                            ListCell(box Nil) => list_cell![AtomCell(SInt(1))],
+                            _                 => list_cell![]
                         }
                         ),
                     env: self.env,

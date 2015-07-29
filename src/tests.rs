@@ -118,7 +118,7 @@ fn test_mul_unexpected_first_arg_fail () {
 #[should_panic(expected="[fatal][ADD]: expected second operand, found Some((nil, nil))")]
 fn test_add_type_error () {
     State {
-        stack:      list!(AtomCell(SInt(1)), ListCell(box Nil)),
+        stack:      list!(AtomCell(SInt(1)), list_cell![]),
         env:        Stack::empty(),
         control:    list!(InstCell(ADD)),
         dump:       Stack::empty(),
@@ -128,7 +128,7 @@ fn test_add_type_error () {
 #[should_panic(expected="[fatal][SUB]: expected second operand, found Some((nil, nil))")]
 fn test_sub_type_error () {
     State {
-        stack:      list!(AtomCell(SInt(1)), ListCell(box Nil)),
+        stack:      list!(AtomCell(SInt(1)), list_cell![]),
         env:        Stack::empty(),
         control:    list!(InstCell(SUB)),
         dump:       Stack::empty(),
@@ -139,7 +139,7 @@ fn test_sub_type_error () {
 #[should_panic(expected="[fatal][DIV]: expected second operand, found Some((nil, nil))")]
 fn test_div_type_error () {
     State {
-        stack:      list!(AtomCell(SInt(1)), ListCell(box Nil)),
+        stack:      list!(AtomCell(SInt(1)), list_cell![]),
         env:        Stack::empty(),
         control:    list!(InstCell(DIV)),
         dump:       Stack::empty(),
@@ -150,7 +150,7 @@ fn test_div_type_error () {
 #[should_panic(expected="[fatal][FDIV]: TypeError: expected compatible operands, found (FDIV 1 nil)")]
 fn test_fdiv_type_error () {
    State {
-        stack:      list!(AtomCell(SInt(1)), ListCell(box Nil)),
+        stack:      list!(AtomCell(SInt(1)), list_cell![]),
         env:        Stack::empty(),
         control:    list!(InstCell(FDIV)),
         dump:       Stack::empty(),
@@ -161,7 +161,7 @@ fn test_fdiv_type_error () {
 #[should_panic(expected="[fatal][MUL]: expected second operand, found Some((nil, nil))")]
 fn test_mul_type_error () {
     State {
-        stack:      list!(AtomCell(SInt(1)), ListCell(box Nil)),
+        stack:      list!(AtomCell(SInt(1)), list_cell![]),
         env:        Stack::empty(),
         control:    list!(InstCell(MUL)),
         dump:       Stack::empty(),
@@ -234,7 +234,7 @@ fn test_eval_nil () {
     };
     assert_eq!(state.stack.peek(), None);
     state = state.eval(None,true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 }
 
 #[test]
@@ -270,14 +270,13 @@ fn test_eval_ldc () {
 fn test_eval_ld () {
     let state = State {
         stack: Stack::empty(),
-        env: list!(ListCell(box list!(AtomCell(SInt(155)),AtomCell(UInt(388))))),
+        env: list!(list_cell![
+            AtomCell(SInt(155)),
+            AtomCell(UInt(388))
+            ]),
         control: list!(
             InstCell(LD),
-            ListCell(
-                box list!(
-                    AtomCell(SInt(1)),AtomCell(SInt(2))
-                    )
-                )
+            list_cell![ AtomCell(SInt(1)), AtomCell(SInt(2)) ]
             ),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
@@ -289,40 +288,19 @@ fn test_eval_ldf () {
         let state = State {
         stack: Stack::empty(),
         env: list!(
-            ListCell(
-                box list!(
-                    AtomCell(SInt(155)),
-                    AtomCell(UInt(388))
-                )
+            list_cell![ AtomCell(SInt(155)), AtomCell(UInt(388))   ],
+            list_cell![ AtomCell(Float(6.66)), AtomCell(SInt(666)) ]
             ),
-            ListCell(
-                box list!(
-                    AtomCell(Float(6.66)),
-                    AtomCell(SInt(666))
-                    )
-                )
-            ),
-        control: list!(InstCell(LDF), ListCell(box list!(AtomCell(SInt(133))))),
+        control: list!(InstCell(LDF), list_cell![AtomCell(SInt(133))] ),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert_eq!(
         state.stack.peek(),
-        Some(&ListCell(
-            box list!(
-                ListCell(
-                    box list!(
-                        AtomCell(SInt(133))
-                    )),
-                ListCell(
-                    box list!(
-                        AtomCell(SInt(155)),
-                        AtomCell(UInt(388))
-                    ),
-                )
-            )
-        )
-    )
-);
+        Some(&list_cell![
+                list_cell![ AtomCell(SInt(133)) ],
+                list_cell![ AtomCell(SInt(155)), AtomCell(UInt(388)) ]
+            ])
+    );
 }
 
 #[test]
@@ -331,10 +309,10 @@ fn test_eval_join() {
         stack: Stack::empty(),
         env: Stack::empty(),
         control: list!(InstCell(JOIN)),
-        dump: list!(ListCell(box list!(
+        dump: list!(list_cell![
                 AtomCell(SInt(1)),
                 AtomCell(SInt(2))
-            )))
+            ])
     }.eval(None, true).unwrap().0;
     assert_eq!(state.dump.peek(), None);
     assert_eq!(state.control[0u64], AtomCell(SInt(1)));
@@ -615,7 +593,7 @@ fn test_eval_eq () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -625,7 +603,7 @@ fn test_eval_eq () {
         control: list!(InstCell(EQ)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     // ---- Signed int equality ----
     state = State {
@@ -635,7 +613,7 @@ fn test_eval_eq () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -645,7 +623,7 @@ fn test_eval_eq () {
         control: list!(InstCell(EQ)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 
     // ---- Float equality ----
@@ -656,7 +634,7 @@ fn test_eval_eq () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -666,7 +644,7 @@ fn test_eval_eq () {
         control: list!(InstCell(EQ)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(Float(2.11)), AtomCell(Float(2.1))),
@@ -674,7 +652,7 @@ fn test_eval_eq () {
         control: list!(InstCell(EQ)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 }
 
@@ -688,7 +666,7 @@ fn test_eval_gt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -698,7 +676,7 @@ fn test_eval_gt () {
         control: list!(InstCell(GT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     // ---- Signed int greater-than ----
     state = State {
@@ -708,7 +686,7 @@ fn test_eval_gt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -718,7 +696,7 @@ fn test_eval_gt () {
         control: list!(InstCell(GT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 
     // ---- Float greater-than----
@@ -729,7 +707,7 @@ fn test_eval_gt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -739,7 +717,7 @@ fn test_eval_gt () {
         control: list!(InstCell(GT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(Float(2.11)), AtomCell(Float(2.1))),
@@ -748,7 +726,7 @@ fn test_eval_gt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -760,7 +738,7 @@ fn test_eval_gt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -771,7 +749,7 @@ fn test_eval_gt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -781,7 +759,7 @@ fn test_eval_gt () {
         control: list!(InstCell(GT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 }
 
@@ -795,7 +773,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -806,7 +784,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -816,7 +794,7 @@ fn test_eval_gte () {
         control: list!(InstCell(GTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 
     // ---- Signed int greater-than ----
@@ -827,7 +805,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -838,7 +816,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -848,7 +826,7 @@ fn test_eval_gte () {
         control: list!(InstCell(GTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 
     // ---- Float greater-than----
@@ -859,7 +837,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -870,7 +848,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -880,7 +858,7 @@ fn test_eval_gte () {
         control: list!(InstCell(GTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     // ---- Mixed type greater-than-equal ---
     state = State {
@@ -890,7 +868,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -901,7 +879,7 @@ fn test_eval_gte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -911,7 +889,7 @@ fn test_eval_gte () {
         control: list!(InstCell(GTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 }
 
 #[test]
@@ -923,7 +901,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(UInt(1)), AtomCell(UInt(2))),
@@ -932,7 +910,7 @@ fn test_eval_lt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -942,7 +920,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 
     // ---- Signed int greater-than ----
@@ -952,7 +930,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(SInt(-2)), AtomCell(SInt(2))),
@@ -961,7 +939,7 @@ fn test_eval_lt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -971,7 +949,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
 
     // ---- Float greater-than----
@@ -981,7 +959,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(Float(-2.0)), AtomCell(Float(2.0))),
@@ -990,7 +968,7 @@ fn test_eval_lt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1000,7 +978,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
        state = State {
         stack: list!(AtomCell(Float(2.0)), AtomCell(Float(2.0))),
@@ -1008,7 +986,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     // ---- Mixed type greater-than ---
     state = State {
@@ -1017,7 +995,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(Float(1.0)), AtomCell(SInt(1))),
@@ -1025,7 +1003,7 @@ fn test_eval_lt () {
         control: list!(InstCell(LT)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(UInt(1)), AtomCell(Float(2.0))),
@@ -1034,7 +1012,7 @@ fn test_eval_lt () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1049,7 +1027,7 @@ fn test_eval_lte () {
         control: list!(InstCell(LTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(UInt(1)), AtomCell(UInt(1))),
@@ -1058,7 +1036,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1069,7 +1047,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1081,7 +1059,7 @@ fn test_eval_lte () {
         control: list!(InstCell(LTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(SInt(1)), AtomCell(SInt(1))),
@@ -1090,7 +1068,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1101,7 +1079,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1113,7 +1091,7 @@ fn test_eval_lte () {
         control: list!(InstCell(LTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(Float(1.0)), AtomCell(Float(1.0))),
@@ -1122,7 +1100,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1133,7 +1111,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1144,7 +1122,7 @@ fn test_eval_lte () {
         control: list!(InstCell(LTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
         stack: list!(AtomCell(Float(1.0)), AtomCell(SInt(1))),
@@ -1152,9 +1130,8 @@ fn test_eval_lte () {
         control: list!(InstCell(LTE)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(
-        box Nil // TODO: this expects wrong float behaviour, fix
-        ))
+    assert_eq!(state.stack.peek(), Some(&list_cell![])
+        // TODO: this expects wrong float behaviour, fix
     );
 
     state = State {
@@ -1164,7 +1141,7 @@ fn test_eval_lte () {
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 }
@@ -1176,13 +1153,13 @@ fn test_eval_ret() {
         env: Stack::empty(),
         control: list!(InstCell(RET)),
         dump: list!(
-            ListCell(box list!(AtomCell(Char('S')), AtomCell(Char('L')))),
-            ListCell(box list!(
-                ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('L')))),
-                ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('D'))))
-                )),
-            ListCell(box list!(AtomCell(Char('C')), AtomCell(Char('L'))))
-            )
+            list_cell![ AtomCell(Char('S')), AtomCell(Char('L')) ],
+            list_cell![
+                list_cell![ AtomCell(Char('E')), AtomCell(Char('L')) ],
+                list_cell![ AtomCell(Char('E')), AtomCell(Char('D')) ]
+            ],
+            list_cell![ AtomCell(Char('C')), AtomCell(Char('L')) ]
+        )
     }.eval(None, true).unwrap().0;
     // stack should have return arg + first elem on dump
     assert_eq!(state.stack.peek(), Some(&AtomCell(SInt(100)))); // test these using peek for now since indexing is borked
@@ -1190,9 +1167,18 @@ fn test_eval_ret() {
     assert_eq!(state.stack[1u64], AtomCell(Char('S')));
     assert_eq!(state.stack[2u64], AtomCell(Char('L')));
     // env should have second element from dump
-    assert_eq!(state.env.peek(), Some(&ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('L'))))));
-    assert_eq!(state.env[0u64], ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('L')))));
-    assert_eq!(state.env[1u64], ListCell(box list!(AtomCell(Char('E')), AtomCell(Char('D')))));
+    assert_eq!(
+        state.env.peek(),
+        Some(&list_cell![ AtomCell(Char('E')), AtomCell(Char('L')) ])
+        );
+    assert_eq!(
+        state.env[0u64],
+        list_cell![ AtomCell(Char('E')), AtomCell(Char('L')) ]
+        );
+    assert_eq!(
+        state.env[1u64],
+        list_cell![ AtomCell(Char('E')), AtomCell(Char('D')) ]
+        );
     // control should have third element from dump
     assert_eq!(state.control.peek(), Some(&AtomCell(Char('C'))));
     assert_eq!(state.control[0u64], AtomCell(Char('C')));
@@ -1204,42 +1190,53 @@ fn test_eval_ret() {
 fn test_eval_dum() {
     let state = State {
         stack: Stack::empty(),
-        env: list!(ListCell(box list!(AtomCell(Char('a'))))),
+        env: list!(list_cell![ AtomCell(Char('a')) ]),
         control: list!(InstCell(DUM)),
         dump: Stack::empty(),
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.env.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.env.peek(), Some(&list_cell![]));
 }
 
 #[test]
 fn test_eval_ap() {
     let state = State {
-        stack: list!(
-            ListCell(box list!(
-                ListCell(box list!(
-                    InstCell(RET), InstCell(ADD), AtomCell(SInt(1)), InstCell(LDC), ListCell(box list!(AtomCell(UInt(0)), AtomCell(UInt(0)))),
+        stack: list!(list_cell![
+                list_cell![
+                    InstCell(RET),
+                    InstCell(ADD),
+                    AtomCell(SInt(1)),
+                    InstCell(LDC),
+                    list_cell![
+                        AtomCell(UInt(0)),
+                        AtomCell(UInt(0))
+                    ],
                     InstCell(LD)
-                    )),
-                ListCell(box list!(
-                    ListCell(box Cons(
-                        AtomCell(SInt(1)), box Nil
-                        ))
-                    ))
-                )),
-            ListCell(box list!( AtomCell(Char('Q')) ))
+                ],
+                list_cell![ list_cell![ AtomCell(SInt(1)) ] ]
+            ],
+            list_cell![ AtomCell(Char('Q')) ]
             ),
-        env: list!(ListCell(
-            box Cons(AtomCell(Char('D')), box Nil)
-            )),
+        env: list!(list_cell![ AtomCell(Char('D')) ]),
         control: list!(InstCell(AP), InstCell(DUM)),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert_eq!(state.stack.peek(), None );
-    assert_eq!(state.control, list!(InstCell(RET), InstCell(ADD), AtomCell(SInt(1)), InstCell(LDC), ListCell(box list!(AtomCell(UInt(0)), AtomCell(UInt(0)))),InstCell(LD)));
-    assert_eq!(state.env, list!(
-        ListCell(box list!(AtomCell(Char('Q')))),
-        ListCell(box list!(AtomCell(SInt(1))))
-        ));
+    assert_eq!(
+        state.control,
+        list!(
+            InstCell(RET),
+            InstCell(ADD),
+            AtomCell(SInt(1)),
+            InstCell(LDC),
+            list_cell![ AtomCell(UInt(0)), AtomCell(UInt(0)) ],
+            InstCell(LD)));
+    assert_eq!(
+        state.env,
+        list!(
+            list_cell![ AtomCell(Char('Q')) ],
+            list_cell![ AtomCell(SInt(1)) ]
+        )
+    );
     //assert_eq!(state.dump, list!(ListCell(box list!(InstCell(DUM))),ListCell(box list!(ListCell(box list!(AtomCell(Char('D'))))))));
 }
 
@@ -1253,7 +1250,7 @@ fn test_eval_atom() {
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1264,7 +1261,7 @@ fn test_eval_atom() {
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1275,7 +1272,7 @@ fn test_eval_atom() {
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1286,7 +1283,7 @@ fn test_eval_atom() {
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1297,7 +1294,7 @@ fn test_eval_atom() {
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert!(
-        state.stack.peek() != Some(&ListCell(box Nil)) &&
+        state.stack.peek() != Some(&list_cell![]) &&
         state.stack.peek() != None
         );
 
@@ -1308,21 +1305,21 @@ fn test_eval_atom() {
         control: list!(InstCell(ATOM)),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 
     state = State {
-        stack: list!(ListCell(box Nil)),
+        stack: list!(list_cell![]),
         env: Stack::empty(),
         control: list!(InstCell(ATOM)),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box Nil)));
+    assert_eq!(state.stack.peek(), Some(&list_cell![]));
 }
 
 #[test]
 fn test_eval_car() {
     let state = State {
-        stack: list!(ListCell(box list!(AtomCell(Char('A')),AtomCell(Char('B'))))),
+        stack: list!(list_cell![ AtomCell(Char('A')),AtomCell(Char('B')) ]),
         env: Stack::empty(),
         control: list!(InstCell(CAR)),
         dump: Stack::empty()
@@ -1333,63 +1330,69 @@ fn test_eval_car() {
 #[test]
 fn test_eval_cdr() {
     let state = State {
-        stack: list!(ListCell(box list!(AtomCell(Char('A')),AtomCell(Char('B'))))),
+        stack:list!(list_cell![ AtomCell(Char('A')),AtomCell(Char('B')) ]),
         env: Stack::empty(),
         control: list!(InstCell(CDR)),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box list!(AtomCell(Char('B'))))));
+    assert_eq!(state.stack.peek(), Some(&list_cell![ AtomCell(Char('B')) ]) );
 }
 
 #[test]
 fn test_eval_cons() {
     let state = State {
-        stack: list!(AtomCell(Char('A')), ListCell(box list!(AtomCell(Char('B')),AtomCell(Char('C'))))),
+        stack: list!(
+            AtomCell(Char('A')),
+            list_cell![ AtomCell(Char('B')) ,AtomCell(Char('C')) ]
+            ),
         env: Stack::empty(),
         control: list!(InstCell(CONS)),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
-    assert_eq!(state.stack.peek(), Some(&ListCell(box list!(
-        AtomCell(Char('A')), AtomCell(Char('B')), AtomCell(Char('C'))
-        ))));
+    assert_eq!(
+        state.stack.peek(),
+        Some(&list_cell![
+            AtomCell(Char('A')), AtomCell(Char('B')), AtomCell(Char('C'))
+        ])
+    );
 }
 
 #[test]
 fn test_eval_sel_true() {
     // true case
     let state = State {
-        stack: list!(ListCell(box Nil)),
+        stack: list!(list_cell![]),
         env: Stack::empty(),
         control: list!(
             InstCell(SEL),
-            ListCell(box list!(InstCell(ATOM))), // should be on stack if true
-            ListCell(box list!(InstCell(NIL))), // should be on stack if false
+            list_cell![ InstCell(ATOM) ], // should be on stack if true
+            list_cell![ InstCell(NIL) ], // should be on stack if false
             InstCell(JOIN) // this is just here so that we can assert that it goes on the dump
             ),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert_eq!(state.stack.peek(), None); // stack should be empty
     assert_eq!(state.control.peek(), Some(&InstCell(NIL)));
-    assert_eq!(state.dump.peek(), Some(&ListCell(box list!(InstCell(JOIN))))); // next instruction on dump
+    assert_eq!(state.dump.peek(), Some(&list_cell![ InstCell(JOIN) ]) ); // next instruction on dump
 }
 
 #[test]
 fn test_eval_sel_false() {
     // false case
     let state = State {
-        stack: list!(ListCell(box list!(AtomCell(SInt(1))))),
+        stack: list!(list_cell![ AtomCell(SInt(1)) ]),
         env: Stack::empty(),
         control: list!(
             InstCell(SEL),
-            ListCell(box list!(InstCell(ATOM))), // should be on stack if true
-            ListCell(box list!(InstCell(NIL))), // should be on stack if false
+            list_cell![ InstCell(ATOM) ], // should be on stack if true
+            list_cell![ InstCell(NIL) ], // should be on stack if false
             InstCell(JOIN) // this is just here so that we can assert that it goes on the dump
             ),
         dump: Stack::empty()
     }.eval(None, true).unwrap().0;
     assert_eq!(state.stack.peek(), None); // stack should be empty
     assert_eq!(state.control.peek(), Some(&InstCell(ATOM)));
-    assert_eq!(state.dump.peek(), Some(&ListCell(box list!(InstCell(JOIN))))); // next instruction on dump
+    assert_eq!(state.dump.peek(), Some(&list_cell![ InstCell(JOIN) ]) ); // next instruction on dump
 }
 
 #[test]
@@ -1402,17 +1405,17 @@ fn test_eval_null() {
             control: list!(InstCell(NULL)),
             dump: Stack::empty(),
         }.eval(None,true).unwrap().0.stack.peek(),
-        Some(&ListCell(box Nil))
+        Some(&list_cell![])
         );
     // false case
     assert_eq!(
         State {
-            stack: list!(ListCell(box Nil)),
+            stack: list!(list_cell![]),
             env: Stack::empty(),
             control: list!(InstCell(NULL)),
             dump: Stack::empty(),
         }.eval(None,true).unwrap().0.stack.peek(),
-        Some(&ListCell(box list!(AtomCell(SInt(1)))))
+        Some(&list_cell![ AtomCell(SInt(1)) ])
         );
 }
 
@@ -1484,9 +1487,15 @@ fn bench_basic_branching_1(b: &mut Bencher) {
             InstCell(LDC), AtomCell(SInt(0)),
             InstCell(EQ),
             InstCell(SEL),
-                ListCell(box list!(InstCell(LDC), AtomCell(SInt(1)), InstCell(JOIN))),
-                ListCell(box list!(InstCell(NIL), InstCell(JOIN))
-            )
+            list_cell![
+                InstCell(LDC),
+                AtomCell(SInt(1)),
+                InstCell(JOIN)
+            ],
+            list_cell![
+                InstCell(NIL),
+                InstCell(JOIN)
+            ]
         ), true)
     })
 }
@@ -1497,8 +1506,8 @@ fn bench_basic_branching_2(b: &mut Bencher) {
         super::eval_program(list!(
             InstCell(NIL), InstCell(NULL),
             InstCell(SEL),
-                ListCell(box list!(InstCell(LDC), AtomCell(SInt(10)), InstCell(JOIN))),
-                ListCell(box list!(InstCell(LDC), AtomCell(SInt(20)), InstCell(JOIN))),
+                list_cell![ InstCell(LDC), AtomCell(SInt(10)), InstCell(JOIN) ],
+                list_cell![ InstCell(LDC), AtomCell(SInt(20)), InstCell(JOIN) ],
             InstCell(LDC), AtomCell(SInt(10)),
             InstCell(ADD)
         ), true)

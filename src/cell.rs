@@ -5,6 +5,19 @@ use ::slist::List;
 
 use std::{fmt,ops};
 
+#[macro_export]
+#[unstable(feature = "list")]
+macro_rules! list_cell {
+    [ $first:expr, $($rest:expr),+ ] => {
+        ListCell(Box::new( list!( $first, $( $rest),+ ) ))
+    };
+    [ $e:expr ] => {
+        ListCell(Box::new( list!($e) ))
+    };
+    [] => { ListCell(Box::new(Nil)) };
+
+}
+
 #[derive(PartialEq,Clone)]
 #[stable(feature="vm_core", since="0.1.0")]
 pub enum SVMCell {

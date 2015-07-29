@@ -70,9 +70,7 @@ impl<T> Stack<T> for List<T> {
     /// ```
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn push(self, item: T) -> List<T> {
-        Cons(item, box self)
-    }
+    fn push(self, item: T) -> List<T> { Cons(item, Box::new(self)) }
 
     /// Pop the top element of the stack.
     ///
@@ -104,10 +102,7 @@ impl<T> Stack<T> for List<T> {
 
     #[inline]
     #[stable(feature="stack", since="0.1.0")]
-    fn empty() -> List<T> {
-        Nil
-    }
-
+    fn empty() -> List<T> { Nil }
 
     /// Peek at the top element of the stack.
     ///
@@ -170,9 +165,7 @@ impl<T> List<T> {
     /// Creates a new empty list
     #[stable(feature="list", since="0.1.0")]
     #[inline]
-    pub fn new() -> List<T> {
-        Nil
-    }
+    pub fn new() -> List<T> { Nil }
 
     /// Prepends the given item to the list.
     ///
@@ -202,9 +195,7 @@ impl<T> List<T> {
     /// ```
     #[inline]
     #[stable(feature="list", since="0.1.0")]
-    pub fn prepend(self, it: T) -> List<T> {
-        Cons(it, box self)
-    }
+    pub fn prepend(self, it: T) -> List<T> { Cons(it, Box::new(self)) }
 
     /// Appends an item to the end of the list.
     ///
@@ -233,8 +224,8 @@ impl<T> List<T> {
     #[stable(feature="list", since="0.2.3")]
     pub fn append(&mut self, it: T) {
         match *self {
-            Cons(_, box ref mut tail) => tail.append(it),
-            Nil => *self = Cons(it, box Nil)
+            Cons(_, ref mut tail) => (*tail).append(it),
+            Nil => *self = Cons(it, Box::new(Nil))
         }
 
     }
@@ -276,8 +267,8 @@ impl<T> List<T> {
     #[stable(feature="list", since="0.2.3")]
     pub fn append_chain(&mut self, it: T) -> &mut List<T> {
         match *self {
-            Cons(_, box ref mut tail) => tail.append_chain(it),
-            Nil => { *self = Cons(it, box Nil); self }
+            Cons(_, ref mut tail) => (*tail).append_chain(it),
+            Nil => { *self = Cons(it, Box::new(Nil)); self }
         }
 
     }
@@ -300,6 +291,57 @@ impl<T> List<T> {
         match *self {
             Cons(_, ref tail) => 1 + tail.length(),
             Nil => 0
+        }
+    }
+
+    /// Returns true if the list is empty, false otherwise.
+    ///
+    /// # Examples
+    /// ```
+    /// # #[macro_use] extern crate seax_svm;
+    /// # use seax_svm::slist::List;
+    /// # use seax_svm::slist::List::{Cons,Nil};
+    /// # fn main() {
+    /// let list = list!(1,2,3,4);
+    /// assert_eq!(list.is_empty(), false)
+    /// # }
+    /// ```
+    /// ```
+    /// # #[macro_use] extern crate seax_svm;
+    /// # use seax_svm::slist::List;
+    /// # use seax_svm::slist::List::{Cons,Nil};
+    /// # fn main() {
+    /// let list: List<isize> = Nil;
+    /// assert_eq!(list.is_empty(), true)
+    /// # }
+    /// ```
+    #[inline]
+    #[stable(feature="list", since="0.2.8")]
+    pub fn is_empty (&self) -> bool {
+        match *self {
+            Cons(_,_) => false,
+            Nil       => true
+        }
+    }
+
+    /// Returns the tail of the list from this element.
+    ///
+    /// # Examples
+    /// ```
+    /// # #[macro_use] extern crate seax_svm;
+    /// # use seax_svm::slist::List;
+    /// # use seax_svm::slist::List::{Cons,Nil};
+    /// # fn main() {
+    /// let list = list!(1,2,3,4);
+    /// assert_eq!(list.tail(), &list!(2,3,4))
+    /// # }
+    /// ```
+    #[inline]
+    #[stable(feature="list", since="0.2.8")]
+    pub fn tail<'a>(&'a self) -> &'a Self {
+        match self {
+            &Cons(_, ref cdr) => cdr,
+            nil @ &Nil        => nil
         }
     }
 
@@ -326,8 +368,8 @@ impl<T> List<T> {
     #[stable(feature="list", since="0.1.0")]
     pub fn last(&self) -> &T {
         match *self {
-            Cons(ref car, box Nil) => &car,
-            Cons(_, ref cdr @ box Cons(_,_)) => cdr.last(),
+            Cons(ref car, ref cdr) if cdr.is_empty() => &car,
+            Cons(_, ref cdr) => (*cdr).last(),
             Nil => panic!("Last called on empty list")
         }
     }
@@ -363,31 +405,16 @@ impl<T> List<T> {
     /// ```
     #[stable(feature="list",since="0.3.0")]
     pub fn get<'a>(&'a self, index: u64) -> Option<&'a T> {
-        match index {
-            0 => match *self {
-                Cons(ref car, _) => Some(&car),
-                Nil => None
-            },
-            1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => Some(&cdr),
-                _ => None
-            },
-            i if i == self.length() as u64 => Some(self.last()),
-            i if i > self.length() as u64  => None,
-            i if i > 1 => {
-                let mut it = self.iter();
-                for _ in 0 .. i{
-                    it.next();
-                }
-                it.next()
-            },
-            _ => None
+        match (0..index).fold(self, |acc, _| acc.tail()) {
+            &Cons(ref car,_) => Some(car),
+            &Nil             => None
         }
+
     }
 }
 
 #[stable(feature="list", since="0.2.5")]
-impl<'a, T> fmt::Display for List<T> where T: fmt::Display{
+impl<'a, T> fmt::Display for List<T> where T: fmt::Display {
     #[stable(feature="list", since="0.2.5")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut it = self.iter();
@@ -444,9 +471,7 @@ impl<T> FromIterator<T> for List<T> {
 
 /// Wraps a List<T> to allow it to be used as an Iterator<T>
 #[stable(feature="list", since="0.1.0")]
-pub struct ListIterator<'a, T:'a> {
-    current: &'a List<T>
-}
+pub struct ListIterator<'a, T:'a> { current: &'a List<T> }
 
 /// Implementation of Iterator for List. This allows iteration by
 /// link hopping.
@@ -489,10 +514,13 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
     /// # }
     /// ```
     #[inline]
-    #[stable(feature="list", since="0.1.0")]
+    #[stable(feature="list", since="0.2.8")]
     fn next(&mut self) -> Option<&'a T> {
         match self.current {
-            &Cons(ref head, box ref tail) => { self.current = tail; Some(head) },
+            &Cons(ref head, ref tail) => {
+                self.current = &(**tail);
+                Some(head)
+                },
             &Nil => None
         }
     }
@@ -513,7 +541,7 @@ impl<'a, T> ExactSizeIterator for ListIterator<'a, T> {
 /// # use seax_svm::slist::List;
 /// # use seax_svm::slist::List::{Cons, Nil};
 /// # fn main () {
-/// let list = list!(1,2,3,4,5,6);
+/// let list: List<isize> = list!(1,2,3,4,5,6);
 /// assert_eq!(list[0usize], 1);
 /// # }
 /// ```
@@ -523,29 +551,9 @@ impl<T> Index<usize> for List<T> {
     type Output = T;
 
     #[inline]
-    #[stable(feature="list", since="0.1.0")]
+    #[stable(feature="list", since="0.2.8")]
     fn index<'a>(&'a self, _index: usize) -> &'a T {
-        match _index {
-            0usize => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1usize => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() => self.last(),
-            i if i > self.length()  => panic!("List index {:?} out of range.", _index),
-            i if i > 1usize => {
-                let mut it = self.iter();
-                for _ in 0usize .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
-        }
+        &self[_index as u64]
     }
 }
 
@@ -562,35 +570,16 @@ impl<T> Index<usize> for List<T> {
 /// assert_eq!(list[0usize], 1);
 /// # }
 /// ```
-#[stable(feature="list", since="0.3.0")]
+#[stable(feature="list", since="0.2.0")]
 impl<T> Index<u64> for List<T> {
-    #[stable(feature="list", since="0.3.0")]
+    #[stable(feature="list", since="0.2.0")]
     type Output = T;
 
     #[inline]
-    #[stable(feature="list", since="0.3.0")]
+    #[stable(feature="list", since="0.2.8")]
     fn index<'a>(&'a self, _index: u64) -> &'a T {
-        match _index {
-            0 => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() as u64 => self.last(),
-            i if i > self.length() as u64  => panic!("List index {:?} out of range.", _index),
-            i if i > 1 => {
-                let mut it = self.iter();
-                for _ in 0 .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
-        }
+        self.get(_index)
+            .expect(&format!("list index {} out of range", _index))
     }
 }
 
@@ -607,37 +596,21 @@ impl<T> Index<u64> for List<T> {
 /// assert_eq!(list[0isize], 1);
 /// # }
 /// ```
-#[stable(feature="list", since="0.3.0")]
-#[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+#[stable(feature="list", since="0.1.0")]
+#[deprecated(since="0.2.0", reason="use unsigned indices instead")]
 impl<T> Index<i64> for List<T> {
-    #[stable(feature="list", since="0.3.0")]
-    #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+    #[stable(feature="list", since="0.1.0")]
+    #[deprecated(since="0.2.0", reason="use unsigned indices instead")]
     type Output = T;
 
     #[inline]
-    #[stable(feature="list", since="0.3.0")]
-    #[deprecated(since="0.3.0", reason="use unsigned indices instead")]
+    #[stable(feature="list", since="0.1.0")]
+    #[deprecated(since="0.2.0", reason="use unsigned indices instead")]
     fn index<'a>(&'a self, _index: i64) -> &'a T {
-        match _index {
-            0 => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1 => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() as i64 => self.last(),
-            i if i > self.length() as i64  => panic!("List index {:?} out of range.", _index),
-            i if i > 1 => {
-                let mut it = self.iter();
-                for _ in 0 .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
+        if _index < 0 {
+            panic!("attempt to access negative index {}", _index)
+        } else {
+            &self[_index as u64]
         }
     }
 }
@@ -665,26 +638,10 @@ impl<T> Index<isize> for List<T> {
     #[stable(feature="list", since="0.1.0")]
     #[deprecated(since="0.2.5", reason="use unsigned indices instead")]
     fn index<'a>(&'a self, _index: isize) -> &'a T {
-        match _index {
-            0isize => match *self {
-                Cons(ref car, _) => car,
-                Nil => panic!("List index {} out of range", _index)
-            },
-            1isize => match *self {
-                Cons(_, box Cons(ref cdr, _)) => cdr,
-                Cons(_, box Nil) => panic!("List index {} out of range", _index),
-                Nil => panic!("List index {} out of range", _index)
-            },
-            i if i == self.length() as isize => self.last(),
-            i if i > self.length() as isize => panic!("List index {:?} out of range.", _index),
-            i if i > 1isize => {
-                let mut it = self.iter();
-                for _ in 0isize .. i{
-                    it.next();
-                }
-                it.next().unwrap()
-            },
-            _ => panic!("Expected an index i such that i >= 0, got {:?}.", _index)
+        if _index < 0 {
+            panic!("attempt to access negative index {}", _index)
+        } else {
+            &self[_index as u64]
         }
     }
 }

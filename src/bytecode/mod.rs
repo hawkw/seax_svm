@@ -141,6 +141,19 @@ use super::Inst::*;
 #[cfg(test)]
 mod tests;
 
+#[cfg(not(feature = "nightly"))]
+macro_rules! push_all {
+    ( $vec:ident, $other:expr ) => {
+        for item in $other {
+            $vec.push(item);
+        }
+    }
+}
+#[cfg(feature = "nightly")]
+macro_rules! push_all {
+    ( $vec:ident, $other:expr ) => { $vec.push_all($other); }
+}
+
 /// exported constants
 #[stable(feature="decode", since="0.3.0")]
 pub const IDENT_BYTES: u16 = 0x5ECD;
@@ -331,13 +344,13 @@ impl<'a, R> Decoder<'a, R>
                             .and_then(|cdr| cdr.ok_or(
                                 String::from("EOF while decoding CONS")) )
                             .map( |cdr| (car, cdr) ),
-                    BYTE_NIL  => Ok((car, box Nil)),
+                    BYTE_NIL  => Ok((car, Box::new(Nil))),
                     b         => Err(
                         format!("Unexpected byte {:#02x} while decoding CONS", b)
                     )
                 }
             })
-            .map(|(car, cdr)| Some(box Cons(car, cdr)) )
+            .map(|(car, cdr)| Some(Box::new( Cons(car, cdr)) ))
     }
 
     /// Decodes the next cell in the source
@@ -408,7 +421,7 @@ impl Encode for SVMCell {
         match *self {
             AtomCell(ref atom) => atom.emit(),
             InstCell(ref inst) => inst.emit(),
-            ListCell(box ref list) => list.emit()
+            ListCell(ref list) => (*list).emit()
         }
     }
 }
@@ -490,10 +503,10 @@ impl<T> Encode for List<T> where T: Encode {
     #[stable(feature="encode", since="0.2.6")]
     fn emit(&self) -> Vec<u8> {
         match *self {
-            Cons(ref it, box ref tail) => {
+            Cons(ref it, ref tail) => {
                 let mut result = vec![BYTE_CONS];
-                result.push_all(&it.emit());
-                result.push_all(&tail.emit());
+                push_all!(result, &it.emit());
+                push_all!(result, &(*tail.emit()));
                 result
             },
             Nil => vec![BYTE_NIL]
