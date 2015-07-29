@@ -9,12 +9,12 @@ use std::{fmt,ops};
 #[unstable(feature = "list")]
 macro_rules! list_cell {
     [ $first:expr, $($rest:expr),+ ] => {
-        SVMCell::ListCell(Box::new( list!( $first, $( $rest),+ ) ))
+        ListCell(Box::new( list!( $first, $( $rest),+ ) ))
     };
     [ $e:expr ] => {
-        SVMCell::ListCell(Box::new( list!($e) ))
+        ListCell(Box::new( list!($e) ))
     };
-    [] => { SVMCell::ListCell(Box::new(Nil)) };
+    [] => { ListCell(Box::new(Nil)) };
 
 }
 
