@@ -28,8 +28,8 @@ before_deploy:
 - travis-cargo doc
 - travis-cargo doc-upload
 - travis-cargo build -- --release
-- travis-cargo package -- --features nightly 
-- travis-cargo publish --token $CRATES_TOKEN
+- travis-cargo package
+- travis-cargo publish -- --token $CRATES_TOKEN
 deploy:
   provider: releases
   api_key:
