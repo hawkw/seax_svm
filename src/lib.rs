@@ -2,14 +2,10 @@
 #![stable(feature="vm_core", since="0.1.2")]
 #![crate_type = "lib"]
 #![cfg_attr(test, feature(test))]
-#![cfg_attr(feature = "nightly",
-    feature(
-        vec_push_all,
-        box_patterns,
-        staged_api
-    )
-)]
+#![cfg_attr(feature = "nightly", feature(vec_push_all) )]
+#![cfg_attr(feature = "nightly", feature(staged_api) )]
 #![cfg_attr(feature = "nightly", staged_api)]
+#![feature(box_patterns)]
 
 
 #[cfg(test)] extern crate quickcheck;
@@ -157,9 +153,9 @@ impl State {
             // LD: load variable
             (InstCell(LD), new_control) => match new_control.pop() {
                 Some((ListCell(
-                    box Cons(AtomCell(UInt(lvl)),
-                    box Cons(AtomCell(UInt(idx)),
-                    box Nil))
+                    ref Cons(AtomCell(UInt(lvl)),
+                    ref Cons(AtomCell(UInt(idx)),
+                    ref Nil))
                     ), newer_control)) => match self.env[(lvl-1)] {
                         ListCell(ref level) => Ok((State {
                             stack: match level.get(idx-1) {
