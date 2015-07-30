@@ -22,8 +22,8 @@ use std::iter::{IntoIterator, FromIterator};
 #[macro_export]
 #[stable(feature="list", since="0.1.0")]
 macro_rules! list(
-    ( $e:expr, $($rest:expr),+ ) => ( Cons($e, &list!( $( $rest ),+ ) ));
-    ( $e:expr ) => ( Cons($e, &Nil) );
+    ( $($es:expr),+ ) => ( Nil $(.prepend($es))* );
+    ( $e: expr ) => ( Cons($e, &Nil) );
     () =>  ( Nil );
 );
 
@@ -165,7 +165,6 @@ pub enum List<'a, T> where T: 'a {
 /// Public implementation for List.
 #[stable(feature="list", since="0.1.0")]
 impl<'a, T> List<'a, T> {
-
 
     /// Creates a new empty list
     #[stable(feature="list", since="0.1.0")]
