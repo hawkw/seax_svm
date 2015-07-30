@@ -153,9 +153,9 @@ impl State {
             // LD: load variable
             (InstCell(LD), new_control) => match new_control.pop() {
                 Some((ListCell(
-                    ref Cons(AtomCell(UInt(lvl)),
-                    ref Cons(AtomCell(UInt(idx)),
-                    ref Nil))
+                    box Cons(AtomCell(UInt(lvl)),
+                    box Cons(AtomCell(UInt(idx)),
+                    box Nil))
                     ), newer_control)) => match self.env[(lvl-1)] {
                         ListCell(ref level) => Ok((State {
                             stack: match level.get(idx-1) {
