@@ -6,7 +6,7 @@ use ::slist::List;
 use std::{fmt,ops};
 
 #[macro_export]
-#[unstable(feature = "list")]
+#[cfg_attr(feature = "nightly", unstable(feature = "list"))]
 macro_rules! list_cell {
     [ $first:expr, $($rest:expr),+ ] => {
         ListCell(Box::new( list!( $first, $( $rest),+ ) ))
@@ -19,26 +19,26 @@ macro_rules! list_cell {
 }
 
 #[derive(PartialEq,Clone)]
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 pub enum SVMCell {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     AtomCell(Atom),
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     ListCell(Box<List<SVMCell>>),
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     InstCell(Inst)
 }
 
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 impl fmt::Display for SVMCell {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self)
     }
 }
 
-#[stable(feature="debug", since="0.2.1")]
+#[cfg_attr(feature = "nightly", stable(feature="debug", since="0.2.1"))]
 impl fmt::Debug for SVMCell {
-    #[stable(feature="debug", since="0.2.1")]
+    #[cfg_attr(feature = "nightly", stable(feature="debug", since="0.2.1"))]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &AtomCell(atom) => write!(f, "{:?}", atom),
@@ -52,24 +52,24 @@ impl fmt::Debug for SVMCell {
 ///
 /// A VM atom can be either an unsigned int, signed int, float, or char.
 #[derive(PartialEq,PartialOrd,Copy,Clone)]
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 pub enum Atom {
     /// Unsigned integer atom (machine 64)
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     UInt(u64),
     /// Signed integer atom (machine 64)
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     SInt(i64),
     /// Floating point number atom (64-bits)
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     Float(f64),
     /// UTF-8 character atom
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     Char(char)
 }
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 impl fmt::Display for Atom {
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Atom::UInt(value) => write!(f, "{}", value),
@@ -80,9 +80,9 @@ impl fmt::Display for Atom {
     }
 }
 
-#[stable(feature="debug", since="0.2.1")]
+#[cfg_attr(feature = "nightly", stable(feature="debug", since="0.2.1"))]
 impl fmt::Debug for Atom {
-    #[stable(feature="debug", since="0.2.1")]
+    #[cfg_attr(feature = "nightly", stable(feature="debug", since="0.2.1"))]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             &Atom::UInt(value) => write!(f, "{:?}u", value),
@@ -93,11 +93,11 @@ impl fmt::Debug for Atom {
     }
 }
 
-#[stable(feature="vm_core", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
 impl ops::Add for Atom {
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     type Output = Atom;
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     fn add(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -127,11 +127,11 @@ impl ops::Add for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
 impl ops::Sub for Atom {
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     type Output = Atom;
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     fn sub(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -158,11 +158,11 @@ impl ops::Sub for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
 impl ops::Div for Atom {
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     type Output = Atom;
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     fn div(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -189,12 +189,12 @@ impl ops::Div for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
 impl ops::Mul for Atom {
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     type Output = Atom;
 
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     fn mul(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -221,12 +221,12 @@ impl ops::Mul for Atom {
     }
 
 }
-#[stable(feature="vm_core", since="0.3.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
 impl ops::Rem for Atom {
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     type Output = Atom;
 
-    #[stable(feature="vm_core", since="0.3.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     fn rem(self, other: Atom) -> Atom {
         match (self, other) {
             // same type:  no coercion
@@ -263,7 +263,7 @@ impl ops::Rem for Atom {
 ///  + `(x.y)` is `Cons(x, y)`. The empty list is `nil`.
 ///  + each instruction is described as a state transition `(s, e, c, d) → (s´, e´, c´, d´)`
 #[derive(Debug,Copy,Clone,PartialEq)]
-#[stable(feature="vm_core", since="0.1.0")]
+#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
 pub enum Inst {
     /// `nil`
     ///
@@ -271,10 +271,10 @@ pub enum Inst {
     ///
     /// __Operational semantics__: `(s, e, (NIL.c), d) → ( (nil.s), e, c, d )`
     ///
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     NIL,
     /// `ldc`: `L`oa`d` `C`onstant. Loads a constant (atom)
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     LDC,
     /// `ld`: `L`oa`d`. Pushes a variable onto the stack.
     ///
@@ -285,7 +285,7 @@ pub enum Inst {
     ///
     /// __Operational semantics__: `(s, e, LDC.v.c, d) → (v.s, e, c, d)`
     ///
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     LD,
     /// `ldf`: `L`oa`d` `F`unction.
     ///
@@ -295,7 +295,7 @@ pub enum Inst {
     ///
     /// _Operational semantics_: `(s, e, (LDF f.c), d) → ( ([f e].s), e, c, d)`
     ///
-    #[stable(feature="vm_core", since="0.2.4")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.2.4"))]
     LDF,
     /// `join`
     ///
@@ -305,7 +305,7 @@ pub enum Inst {
     ///
     /// __Operational semantics__: `(s, e, JOIN.c, c´.d) → (s, e, c´, d)`
     ///
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     JOIN,
     /// `ap`: `Ap`ply.
     ///
@@ -318,25 +318,25 @@ pub enum Inst {
     ///
     /// __Operational semantics__: `(([f e´] v.s), e, (AP.c), d) → (nil, (v.e&prime), f, (s e c.d))`
     ///
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     AP,
     /// `ret`: `Ret`urn.
     ///
     /// Pops one return value from the stack, restores
     /// `$s`, `$e`, and `$c` from the dump, and pushes
     /// the return value onto the now-current stack.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     RET,
     /// `dum`: `Dum`my.
     ///
     /// Pops a dummy environment (an empty list) onto the `$e` stack.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     DUM,
     /// `rap`: `R`ecursive `Ap`ply.
     /// Works like `ap`, only that it replaces an occurrence of a
     /// dummy environment with the current one, thus making recursive
     ///  functions possible.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     RAP,
     /// `sel`: `Sel`ect branch
     ///
@@ -348,7 +348,7 @@ pub enum Inst {
     ///
     /// __Operational semantics__: `(v.s, e, SEL.true.false.c, d) → (s, e, (if v then true else false), c.d)`
     ///
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     SEL,
     /// `add`
     ///
@@ -358,7 +358,7 @@ pub enum Inst {
     ///
     /// TODO: figure out what happens when you try to add things that aren't
     /// numbers (maybe the compiler won't let this happen?).
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     ADD,
     /// `sub`: `Sub`tract
     ///
@@ -368,7 +368,7 @@ pub enum Inst {
     ///
     /// TODO: figure out what happens when you try to subtract things that
     /// aren't numbers (maybe the compiler won't let thi64 happen?).
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     SUB,
     /// `mul`: `Mul`tiply
     ///
@@ -378,7 +378,7 @@ pub enum Inst {
     ///
     /// TODO: figure out what happens when you try to multiply things that
     /// aren't numbers (maybe the compiler won't let thi64 happen?).
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     MUL,
     /// `div`: `Div`ide
     ///
@@ -387,7 +387,7 @@ pub enum Inst {
     ///
     /// TODO: figure out what happens when you try to divide things that
     /// aren't numbers (maybe the compiler won't let thi64 happen?).
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     DIV,
     /// `fdiv`: `F`loating-point `div`ide
     ///
@@ -399,7 +399,7 @@ pub enum Inst {
     ///
     /// TODO: Not sure if there should be separate float and int divide words
     /// I guess the compiler can figure this out
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     FDIV,
     /// `mod`: `Mod`ulo
     ///
@@ -408,77 +408,77 @@ pub enum Inst {
     ///
     /// TODO: figure out what happens when you try to modulo things that
     /// aren't numbers (maybe the compiler won't let this happen?).
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     MOD,
     /// `eq`: `Eq`uality of atoms
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     EQ,
     /// `gt`: `G`reater `t`han
     ///
     /// Pops two numbers on the stack and puts a 'true' on the stack
     /// if the first atom i64 greater than the other atom, false otherwi64e.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     GT,
     /// `gte`: `G`reater `t`han or `e`qual
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     GTE,
     /// `lt`: `L`ess `t`han
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     LT,
     /// `lte`: `L`ess `t`han or `e`qual
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     LTE,
     /// `atom`: test if `atom`
     ///
     /// Pops an item from the stack and returns true if it's an atom, false
     /// otherwise.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     ATOM,
     /// `car`: `C`ontents of `A`ddress `R`egister
     ///
     /// Pops a list from the stack and returns the list's `car` (head)
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     CAR,
     /// `cdr`: `C`ontents of `D`ecrement `R`egister
     ///
     /// Pops a list from the stack and returns the list's `cdr` (tail)
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     CDR,
     /// `cons`: `Cons`truct
     ///
     /// Pops an item and a list from the stack and returns the list, with
     /// the item prepended.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     CONS,
     /// `null`: test if `null`
     ///
     ///  Pops an item from the stack and returns true if it is `nil`, false
     ///  otherwise.
-    #[stable(feature="vm_core", since="0.1.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.0"))]
     NULL,
     /// `stop`: `stop` execution
     ///
     /// Terminates program execution. The `eval_program()` function will return
     /// the last state of the VM.
-    #[stable(feature="vm_core", since="0.1.2")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.2"))]
     STOP,
     /// `readc`: `read` `c`haracter
     ///
     /// Reads a character from the machine's input stream and places it
     /// on top of the stack
-    #[stable(feature="vm_io", since="0.2.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_io", since="0.2.0"))]
     READC,
     /// `writec`: `write` `c`haracter
     ///
     /// Writes a character from the top of the stack to the machine's
     /// output stream.
-    #[stable(feature="vm_io", since="0.2.0")]
+    #[cfg_attr(feature = "nightly", stable(feature="vm_io", since="0.2.0"))]
     WRITEC,
     /// `apcc`: `ap`ply with `c`urrent `c`ontinuation
     ///
     /// Applies a closure and captures the continuation that can
     /// then be applied with `ap`.
-    #[unstable(feature="callcc")]
+    #[cfg_attr(feature = "nightly", unstable(feature="callcc"))]
     APCC,
 }
 
