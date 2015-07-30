@@ -122,7 +122,9 @@ impl State {
     ///
     ///  - `inp`: an input stream implementing `io::Read`
     ///  - `outp`: an output stream implementing `io::Write`
-    ///  - `debug`: whether or not to snapshot the state before evaluating. This provides more detailed debugging information on errors, but may have a significant impact on performance.
+    ///  - `debug`: whether or not to snapshot the state before evaluating. This
+    ///     provides more detailed debugging information on errors, but may have
+    ///     a significant impact on performance.
     ///
     #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
     pub fn eval(self,
