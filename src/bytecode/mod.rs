@@ -144,8 +144,8 @@ mod tests;
 #[cfg(not(feature = "nightly"))]
 macro_rules! push_all {
     ( $vec:ident, $other:expr ) => {
-        for item in $other {
-            $vec.push(item);
+        for item in $other.into_iter() {
+            $vec.push(*item);
         }
     }
 }
