@@ -2,9 +2,10 @@
 #![crate_type = "lib"]
 #![cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.2") )]
 #![cfg_attr(test, feature(test))]
-#![cfg_attr(feature = "nightly", feature(vec_push_all, box_patterns) )]
+#![cfg_attr(feature = "nightly", feature(vec_push_all) )]
 #![cfg_attr(feature = "nightly", feature(staged_api) )]
 #![cfg_attr(feature = "nightly", staged_api)]
+#![feature(box_patterns)]
 
 
 #[cfg(test)] extern crate quickcheck;
