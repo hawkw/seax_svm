@@ -145,7 +145,7 @@ mod tests;
 macro_rules! push_all {
     ( $vec:ident, $other:expr ) => {
         for item in $other {
-            $vec.push(item);
+            $vec.push(*item);
         }
     }
 }

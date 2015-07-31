@@ -9,6 +9,19 @@ use std::io::Cursor;
 
 use quickcheck::quickcheck;
 
+#[cfg(not(feature = "nightly"))]
+macro_rules! push_all {
+    ( $vec:ident, $other:expr ) => {
+        for item in $other {
+            $vec.push(*item);
+        }
+    }
+}
+#[cfg(feature = "nightly")]
+macro_rules! push_all {
+    ( $vec:ident, $other:expr ) => { $vec.push_all($other); }
+}
+
 macro_rules! impl_encode_test {
     ($name:ident, $it:expr) => {
         #[test]
@@ -77,7 +90,7 @@ fn test_decode_program () {
         list_cell![ InstCell(NIL), InstCell(JOIN) ]
     ];
     let mut encoded = vec![0x5e, 0xcd, 0x00, 0x00];
-    encoded.push_all(&cell.emit());
+    push_all!(encoded,&cell.emit());
     assert_eq!(
         Ok(list!(cell)),
         super::decode_program(&mut Cursor::new(encoded))
@@ -96,7 +109,7 @@ fn test_decode_program_no_ident () {
         list_cell![ InstCell(NIL), InstCell(JOIN) ]
     ];
     let mut encoded = vec![0x00, 0x00];
-    encoded.push_all(&cell.emit());
+    push_all!(encoded,&cell.emit());
     assert_eq!(
         Err(String::from("invalid identifying bytes 0x0000")),
         super::decode_program(&mut Cursor::new(encoded))
@@ -115,7 +128,7 @@ fn test_decode_program_wrong_version () {
         list_cell![ InstCell(NIL), InstCell(JOIN) ]
     ];
     let mut encoded = vec![0x5e, 0xcd, 0x10, 0x00];
-    encoded.push_all(&cell.emit());
+    push_all!(encoded,&cell.emit());
     assert_eq!(
         Ok(list!(cell)),
         super::decode_program(&mut Cursor::new(encoded))
