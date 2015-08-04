@@ -1,9 +1,11 @@
-use ::slist::Stack;
-use ::slist::List::{Cons,Nil};
+use seax::Stack;
+use seax::List::{Cons,Nil};
+
+use seax::cell::Atom::*;
+use seax::cell::SVMCell::*;
+use seax::cell::Inst::*;
+
 use super::State;
-use super::cell::Atom::*;
-use super::cell::SVMCell::*;
-use super::Inst::*;
 
 use quickcheck::quickcheck;
 

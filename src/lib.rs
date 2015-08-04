@@ -2,53 +2,29 @@
 #![crate_type = "lib"]
 #![cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.2") )]
 #![cfg_attr(test, feature(test))]
-#![cfg_attr(feature = "nightly", feature(vec_push_all) )]
 #![cfg_attr(feature = "nightly", feature(staged_api) )]
 #![cfg_attr(feature = "nightly", staged_api)]
 #![feature(box_patterns)]
 
+/// Contains the Seax Virtual Machine (SVM) and miscellaneous
+/// support code.
 
 #[cfg(test)] extern crate quickcheck;
 #[cfg(test)] extern crate test;
-
+#[macro_use] extern crate seax_util as seax;
 #[macro_use] extern crate log;
-extern crate byteorder;
-
-/// Singly-linked list and stack implementations.
-///
-/// `List<T>` is a singly-linked `cons` list.
-/// `Stack<T>` is a trait providing stack operations(`push()`, `pop()`, and
-/// `peek()`), and an implementation for `List`.
-#[macro_use]
-#[cfg_attr(feature = "nightly", stable(feature="list", since="0.1.0"))]
-pub mod slist;
-
-/// SVM cell types.
-///
-/// A cell in the VM can be either an atom (single item, either unsigned
-/// int, signed int, float, or string), a pointer to a list cell, or an
-/// instruction.
-#[macro_use]
-#[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.1.2"))]
-pub mod cell;
-
-#[cfg_attr(feature = "nightly", unstable(feature="bytecode"))]
-pub mod bytecode;
 
 #[cfg(test)]
 mod tests;
 
-/// Contains the Seax Virtual Machine (SVM) and miscellaneous
-/// support code.
+use seax::cell::SVMCell;
+use seax::cell::SVMCell::*;
+use seax::cell::Atom::*;
+use seax::cell::Inst::*;
 
-// Reexports
-pub use self::slist::{List, Stack};
-pub use self::slist::List::{Cons,Nil};
-pub use self::cell::{SVMCell,Atom,Inst};
-
-use self::cell::SVMCell::*;
-use self::cell::Atom::*;
-use self::cell::Inst::*;
+use seax::Stack;
+use seax::List;
+use seax::List::{Cons, Nil};
 
 /// Represents a SVM machine state
 #[derive(PartialEq,Clone,Debug)]

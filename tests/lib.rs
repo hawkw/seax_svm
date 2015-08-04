@@ -1,13 +1,13 @@
 #![feature(box_syntax,box_patterns)]
 
-#[macro_use]
-extern crate seax_svm as svm;
+#[macro_use] extern crate seax_svm as svm;
+#[macro_use] extern crate seax_util as seax;
 
-use svm::slist::Stack;
-use svm::slist::List::{Cons,Nil};
-use svm::cell::Atom::*;
-use svm::cell::SVMCell::*;
-use svm::Inst::*;
+use seax::Stack;
+use seax::List::{Cons,Nil};
+use seax::cell::Atom::*;
+use seax::cell::SVMCell::*;
+use seax::Inst::*;
 
 /// SVM integration tests.
 ///
@@ -140,4 +140,3 @@ fn test_basic_branching() {
         Some(&AtomCell(SInt(20)))
     );
 }
-

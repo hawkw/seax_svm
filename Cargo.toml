@@ -12,7 +12,9 @@ keywords = ["vm","lisp","languages"]
 
 [dependencies]
 log = "0.3.1"
-byteorder = "*"
+
+[dependencies.seax_util]
+git = "https://github.com/hawkw/seax_util"
 
 [dev-dependencies]
 quickcheck = "*"
