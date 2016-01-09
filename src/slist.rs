@@ -29,7 +29,7 @@ macro_rules! list(
 
 /// Common functions for an immutable Stack abstract data type.
 #[cfg_attr(feature = "nightly", stable(feature="stack", since="0.1.0") )]
-pub trait Stack<T> {
+pub trait Stack<T>: Sized {
 
     /// Push an item to the top of the stack, returning a new stack
     #[cfg_attr(feature = "nightly", stable(feature="stack", since="0.1.0") )]
