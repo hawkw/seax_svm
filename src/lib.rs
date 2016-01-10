@@ -20,6 +20,7 @@ mod tests;
 use seax::cell::SVMCell;
 use seax::cell::SVMCell::*;
 use seax::cell::Atom::*;
+use seax::cell::Inst;
 use seax::cell::Inst::*;
 
 use seax::Stack;
@@ -90,6 +91,57 @@ impl State {
             )
     }
 
+    macro_rules! fatal {
+        ($msg:expr, $pre:expr) => {
+            format!("[fatal]{}\n{}",
+                $msg,
+                $pre.take()
+                    .map_or(String::new(),
+                        |x| x.dump_state("fatal")
+                    )
+            )
+        }
+    }
+
+    #[inline]
+    fn eval_nil(self, new_control: List<SVMCell>)
+        -> EvalResult
+    {
+        Ok((State {
+            stack: self.stack.push(list_cell![]),
+            env: self.env,
+            control: new_control,
+            dump: self.dump
+        }, None))
+    }
+
+    #[inline]
+    fn eval_ldc(self, new_control: List<SVMCell>, prev: Option<State>)
+         -> EvalResult
+    {
+        new_control.pop()
+            .ok_or( fatal!("[LDC]: pop on empty stack", prev) )
+            .map(|(atom, newer_control)|
+                (State {
+                    stack: self.stack.push(atom),
+                    env: self.env,
+                    control: newer_control,
+                    dump: self.dump
+                }, None)
+            )
+    }
+
+    #[inline]
+    fn eval_ld(self, new_control: List<SVMCell>, prev: Option<State>)
+        -> EvalResult
+    {
+        new_control.pop()
+            .ok_or(
+
+                )
+
+    }
+
     /// Evaluates an instruction.
     ///
     /// Evaluates an instruction against a state, returning a new state.
@@ -103,35 +155,19 @@ impl State {
     ///     a significant impact on performance.
     ///
     #[cfg_attr(feature = "nightly", stable(feature="vm_core", since="0.3.0"))]
-    pub fn eval(self,
-                input: Option<u8>,
-                debug: bool)
-                -> EvalResult {
+    pub fn eval(self, input: Option<u8>, debug: bool) -> EvalResult {
         debug!("[eval]: Evaluating {:?}", self.control);
         // TODO: this (by which I mean "the whole caching deal") could likely be made
         // better and/or faster with some clever (mis?)use of RefCell; look into that.
         let mut prev = if debug { Some(self.clone()) } else { None };
         // in ths pattern match, we begin The Great Work
-        match self.control.pop().unwrap() {
-            // NIL: pop an empty list onto the stack
-            (InstCell(NIL), new_control) => Ok((State {
-                stack: self.stack.push(list_cell![]),
-                env: self.env,
-                control: new_control,
-                dump: self.dump
-            }, None)),
-            // LDC: load constant
-            (InstCell(LDC), new_control) => {
-                let (atom,newer_control) = try!(new_control.pop().ok_or(
-                    format!("[fatal][LDC]: pop on empty stack\n{}",
-                        prev.take().map_or(String::new(), |x| x.dump_state("fatal") ))) );
-                Ok((State {
-                    stack: self.stack.push(atom),
-                    env: self.env,
-                    control: newer_control,
-                    dump: self.dump
-                }, None))
-            },
+        self.control.pop()
+            .map(|(inst, new_control)| match inst {
+                // NIL: pop an empty list onto the stack
+                InstCell(NIL) => self.eval_nil(new_control),
+                // LDC: load constant
+                InstCell(LDC) => self.eval_ldc(new_control, prev),
+            })
             // LD: load variable
             (InstCell(LD), new_control) => match new_control.pop() {
                 Some((ListCell(
@@ -158,7 +194,7 @@ impl State {
                             dump: self.dump
                         }, None)),
                         _ => Err(format!(
-                            "[fatal][LD]: expected list in $e, found {:?}\n{}",
+                            "[fatal]\n{}",
                             self.env[lvl-1], prev.map_or(String::new(), |x| x.dump_state("fatal") )))
                 },
                Some((ListCell( // TODO: this uses deprecated signed int indexing, remove
@@ -730,9 +766,8 @@ impl State {
 /// Evaluates a program (control stack) and returns the final state.
 /// TODO: add (optional?) parameters for stdin and stdout
 #[cfg_attr(feature = "nightly", stable(feature="vm_core",since="0.2.0"))]
-pub fn eval_program(program: List<SVMCell>,
-                    debug: bool)
-    -> Result<List<SVMCell>,String> {
+pub fn eval_program(program: List<SVMCell>, debug: bool)
+                    -> Result<List<SVMCell>,String> {
     debug!("evaluating {:?}", program);
     let mut machine = State {
         stack:      Stack::empty(),
