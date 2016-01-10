@@ -2,12 +2,11 @@ Seax Virtual Machine (SVM)
 ==========================
 
 [![Join the chat at https://gitter.im/hawkw/seax](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hawkw/seax?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-[![Build Status](https://img.shields.io/travis/hawkw/seax_svm/master.svg?style=flat-square)](https://travis-ci.org/hawkw/seax_svm)
-[![Coverage](https://img.shields.io/codecov/c/github/hawkw/seax_svm/master.svg?style=flat-square)](http://codecov.io/github/hawkw/seax_svm?branch=master)
-[![Latest RustDoc](https://img.shields.io/badge/rustdoc-latest-green.svg?style=flat-square)](http://hawkweisman.me/seax/api/seax_svm/)
-[![Latest SVM release](https://img.shields.io/crates/v/seax_svm.svg?style=flat-square)](https://crates.io/crates/seax_svm)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/hawkw/seax/LICENSE)
+[![Build Status](https://img.shields.io/travis/hawkw/seax_svm/master.svg?style=flat)](https://travis-ci.org/hawkw/seax_svm)
+[![Coverage](https://img.shields.io/codecov/c/github/hawkw/seax_svm/master.svg?style=flat)](http://codecov.io/github/hawkw/seax_svm?branch=master)
+[![Latest RustDoc](https://img.shields.io/badge/rustdoc-latest-green.svg?style=flat)](http://hawkweisman.me/seax/api/seax_svm/)
+[![Latest SVM release](https://img.shields.io/crates/v/seax_svm.svg?style=flat)](https://crates.io/crates/seax_svm)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/hawkw/seax/LICENSE)
 
 The [Seax](http://hawkweisman.me/seax/) virtual machine, a runtime environment for functional programming languages.
 
